@@ -44,6 +44,33 @@ const CITIES: City[] = [
   'Thetford', 'Caerleon', 'Brecilien', 'Black Market'
 ];
 
+export const JOURNAL_INFO_MAP: Record<string, { pl: string; en: string; stationPl: string; stationEn: string }> = {
+  blacksmith: {
+    pl: 'Dziennik Wojownika (Kuźnia)',
+    en: "Warrior's (Blacksmith) Journal",
+    stationPl: 'Kuźnia (Miecze, Topory, Buławy, Tarcze, Płyty)',
+    stationEn: 'Forge (Swords, Axes, Maces, Shields, Plate)',
+  },
+  fletcher: {
+    pl: 'Dziennik Łowcy (Chatka Łowcy)',
+    en: "Hunter's (Fletcher) Journal",
+    stationPl: 'Chatka Łowcy (Łuki, Włócznie, Sztylety, Skóry)',
+    stationEn: "Hunter's Lodge (Bows, Spears, Daggers, Leather)",
+  },
+  imbuer: {
+    pl: 'Dziennik Maga (Wieża Maga)',
+    en: "Mage's (Imbuer) Journal",
+    stationPl: 'Wieża Maga (Kostury, Księgi, Szaty)',
+    stationEn: "Mage's Tower (Staves, Tomes, Robes)",
+  },
+  tinker: {
+    pl: 'Dziennik Majsterkowicza (Warsztat)',
+    en: "Toolmaker's (Tinker) Journal",
+    stationPl: 'Warsztat (Torby, Peleryny, Narzędzia)',
+    stationEn: 'Toolmaker (Bags, Capes, Tools)',
+  }
+};
+
 export const CraftPlanner: React.FC<CraftPlannerProps> = ({
   items, cityBonuses, journalData, settings, onUpdateSettings,
   priceMap, onRefreshPrices, isLoadingPrices, language,
@@ -68,6 +95,14 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
 
   // Custom price overrides per item ID
   const [customPrices, setCustomPrices] = useState<Record<string, number>>({});
+
+  // Custom user-selected journal count (null = auto calculate from fame)
+  const [customJournalCount, setCustomJournalCount] = useState<number | null>(null);
+
+  // Reset custom journal count when item or quantity changes
+  useEffect(() => {
+    setCustomJournalCount(null);
+  }, [selectedItemId, enchantment, quantity]);
 
   // Save selection to localStorage whenever it changes
   useEffect(() => { localStorage.setItem('cp_itemId', selectedItemId); }, [selectedItemId]);
@@ -118,9 +153,10 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
       customPrices,
       cityBonuses,
       journalData,
-      quality
+      quality,
+      customJournalCount
     );
-  }, [selectedItem, enchantment, quantity, settings, priceMap, customPrices, cityBonuses, journalData, quality]);
+  }, [selectedItem, enchantment, quantity, settings, priceMap, customPrices, cityBonuses, journalData, quality, customJournalCount]);
 
   // Available enchantment levels for selected item
   const availableEnchantments = useMemo(() => {
@@ -134,7 +170,7 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
     return hasCityBonus(selectedItem, settings.craftCity, cityBonuses);
   }, [selectedItem, settings.craftCity, cityBonuses]);
 
-  // Handle refreshing prices for currently viewed item & materials
+  // Handle refreshing prices for currently viewed item, materials & journals
   const handleRefreshCurrent = async () => {
     if (!selectedItem) return;
     const idsToFetch: string[] = [];
@@ -148,9 +184,10 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
       recipe.resources.forEach((r) => idsToFetch.push(r.id));
     }
 
-    // Journals IDs if enabled
-    if (settings.includeJournals && selectedItem.journalType && journalData[selectedItem.journalType]) {
-      const jInfo = journalData[selectedItem.journalType][`T${selectedItem.tier}`];
+    // Journals IDs (always fetch if item supports journals)
+    if (selectedItem.journalType && journalData && journalData[selectedItem.journalType]) {
+      const tierKey = `T${Math.max(4, selectedItem.tier)}`;
+      const jInfo = journalData[selectedItem.journalType][tierKey];
       if (jInfo) {
         idsToFetch.push(jInfo.empty, jInfo.full);
       }
@@ -212,6 +249,20 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
     marketSalesTax: language === 'pl' ? 'Podatek rynkowy ze sprzedaży' : 'Market Sales Tax',
     marketSetupFee: language === 'pl' ? 'Prowizja wystawienia (Setup fee 2.5%)' : 'Market Setup Fee (2.5%)',
     journalsFilled: language === 'pl' ? 'Dzienniki rzemieślnicze' : 'Crafting Journals',
+    journalsTitle: language === 'pl' ? 'Dzienniki Rzemieślnicze (Laborer Journals)' : 'Laborer Crafting Journals',
+    journalsSubtitle: language === 'pl' 
+      ? 'Wypełniaj dzienniki rzemieślnicze sławą z craftingu i sprzedawaj je dla dodatkowego zysku'
+      : 'Fill laborer journals with crafting fame and sell them for extra profit',
+    journalActive: language === 'pl' ? 'Wliczone do zysku' : 'Included in profit',
+    journalInactive: language === 'pl' ? 'Wyłączone' : 'Disabled',
+    famePerItem: language === 'pl' ? 'Sława z 1 sztuki' : 'Fame per craft',
+    totalFame: language === 'pl' ? 'Łączna sława z partii' : 'Total fame',
+    famePerJournal: language === 'pl' ? 'Pojemność dziennika' : 'Fame per journal',
+    fillStatus: language === 'pl' ? 'Napełnienie dzienników' : 'Journal Fill Status',
+    countToSell: language === 'pl' ? 'Zabierane dzienniki' : 'Journals to take',
+    emptyJournal: language === 'pl' ? 'Pusty dziennik (Kupno)' : 'Empty Journal (Buy)',
+    fullJournal: language === 'pl' ? 'Pełny dziennik (Sprzedaż)' : 'Full Journal (Sell)',
+    journalNetProfitLabel: language === 'pl' ? 'Czysty zysk z dzienników' : 'Net Journal Profit',
     grossRevenue: language === 'pl' ? 'Przychód brutto' : 'Gross Revenue',
     netRevenue: language === 'pl' ? 'Przychód netto' : 'Net Revenue',
     totalCostsSum: language === 'pl' ? 'Suma kosztów netto' : 'Total Net Costs',
@@ -450,7 +501,7 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
             {/* Focus Button */}
             <button
               onClick={() => onUpdateSettings({ useFocus: !settings.useFocus })}
-              className={`w-full py-2.5 px-3 rounded-lg border font-semibold text-xs flex items-center justify-between transition-all ${
+              className={`w-full py-2 px-3 rounded-lg border font-semibold text-xs flex items-center justify-between transition-all ${
                 settings.useFocus
                   ? 'bg-amber-500/20 text-amber-300 border-amber-500 shadow-md shadow-amber-950/40'
                   : 'bg-[#181c2b] text-slate-400 border-slate-700 hover:text-slate-200'
@@ -464,6 +515,29 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
                 {settings.useFocus ? `${calcResult?.focusCostPerUnit || 0} / szt.` : 'OFF'}
               </span>
             </button>
+
+            {/* Journal Quick Button */}
+            {selectedItem.journalType && (
+              <button
+                onClick={() => onUpdateSettings({ includeJournals: !settings.includeJournals })}
+                className={`w-full py-2 px-3 rounded-lg border font-semibold text-xs flex items-center justify-between transition-all ${
+                  settings.includeJournals
+                    ? 'bg-purple-500/20 text-purple-300 border-purple-500/60 shadow-md shadow-purple-950/40'
+                    : 'bg-[#181c2b] text-slate-400 border-slate-700 hover:text-slate-200'
+                }`}
+                title="Włącz lub wyłącz dzienniki w kalkulacji"
+              >
+                <span className="flex items-center gap-1.5">
+                  <BookOpen className={`w-4 h-4 ${settings.includeJournals ? 'text-purple-400' : 'text-slate-500'}`} />
+                  Dzienniki ({calcResult?.journalDetail?.journalsFilledDecimal ?? 0} szt.)
+                </span>
+                <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                  settings.includeJournals ? 'bg-purple-500 text-black' : 'bg-slate-800 text-slate-400'
+                }`}>
+                  {settings.includeJournals ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            )}
 
             {/* Quantity Controls */}
             <div className="flex items-center gap-1.5">
@@ -516,6 +590,12 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
               <div className="text-[11px] opacity-80">
                 {(calcResult.netProfit / quantity).toFixed(0)} srebra / szt.
               </div>
+              {settings.includeJournals && calcResult.journalDetail && calcResult.journalDetail.actualCountUsed > 0 && (
+                <div className="text-[10px] text-purple-300 font-semibold flex items-center gap-1 mt-1 border-t border-emerald-500/20 pt-1">
+                  <BookOpen className="w-3 h-3 text-purple-400" />
+                  w tym dzienniki: +{calcResult.journalDetail.journalNetProfit.toLocaleString()}
+                </div>
+              )}
             </div>
             <div className="text-[10px] text-slate-400">
               Przychód: {calcResult.netRevenue.toLocaleString()} | Koszt: {calcResult.totalCost.toLocaleString()}
@@ -598,6 +678,276 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* Laborer Journals Interactive Section */}
+      {selectedItem.journalType && calcResult?.journalDetail && (
+        <div className={`p-5 rounded-xl border transition-all shadow-lg ${
+          settings.includeJournals
+            ? 'bg-[#141824] border-purple-500/50 shadow-purple-950/20 ring-1 ring-purple-500/20'
+            : 'bg-[#10131d] border-[#22293b]'
+        }`}>
+          {/* Section Header with Quick Toggle */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#22293b]">
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl border ${
+                settings.includeJournals
+                  ? 'bg-purple-950/60 border-purple-500/60 text-purple-300'
+                  : 'bg-slate-800/50 border-slate-700 text-slate-400'
+              }`}>
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                    {t.journalsTitle}
+                    <span className="text-xs px-2 py-0.5 rounded font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      T{calcResult.journalDetail.tier}
+                    </span>
+                  </h3>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    settings.includeJournals
+                      ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                      : 'bg-slate-800 text-slate-400 border-slate-700'
+                  }`}>
+                    {settings.includeJournals ? t.journalActive : t.journalInactive}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {JOURNAL_INFO_MAP[calcResult.journalDetail.journalType]?.[language === 'pl' ? 'stationPl' : 'stationEn'] || t.journalsSubtitle}
+                </p>
+              </div>
+            </div>
+
+            {/* Switch Toggle Button */}
+            <button
+              onClick={() => onUpdateSettings({ includeJournals: !settings.includeJournals })}
+              className={`px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-all shadow ${
+                settings.includeJournals
+                  ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-900/40'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              {settings.includeJournals ? 'Dzienniki aktywne (Wliczone)' : 'Włącz dzienniki w kalkulacji'}
+            </button>
+          </div>
+
+          {/* Journal Details Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-4">
+            
+            {/* Col 1: Journal Identification & Fame Stats (4 cols) */}
+            <div className="lg:col-span-4 bg-[#0d1017] p-4 rounded-xl border border-[#22293b] flex flex-col justify-between space-y-3">
+              <div className="flex items-center gap-3">
+                <img
+                  src={getItemRenderUrl(calcResult.journalDetail.emptyId)}
+                  alt="Empty Journal"
+                  className="w-12 h-12 rounded bg-[#07090e] border border-[#2b334a] p-1 object-contain shrink-0"
+                />
+                <div>
+                  <div className="font-bold text-sm text-slate-100">
+                    {JOURNAL_INFO_MAP[calcResult.journalDetail.journalType]?.[language === 'pl' ? 'pl' : 'en'] || calcResult.journalDetail.journalType}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-mono">
+                    {calcResult.journalDetail.emptyId}
+                  </div>
+                </div>
+              </div>
+
+              {/* Fame metrics */}
+              <div className="space-y-1.5 text-xs border-t border-[#1a2030] pt-2.5">
+                <div className="flex justify-between text-slate-400">
+                  <span>{t.famePerItem}:</span>
+                  <span className="font-mono font-semibold text-amber-300">
+                    +{calcResult.journalDetail.famePerCraft.toLocaleString()} Fame
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>{t.totalFame}:</span>
+                  <span className="font-mono font-bold text-amber-400">
+                    {calcResult.journalDetail.totalFame.toLocaleString()} Fame
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>{t.famePerJournal}:</span>
+                  <span className="font-mono text-slate-300">
+                    {calcResult.journalDetail.fameRequiredPerJournal.toLocaleString()} Fame
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Col 2: Fill Progress & Count Selection (4 cols) */}
+            <div className="lg:col-span-4 bg-[#0d1017] p-4 rounded-xl border border-[#22293b] flex flex-col justify-between space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                    {t.fillStatus}
+                  </span>
+                  <span className="text-xs font-mono font-bold text-purple-300">
+                    {calcResult.journalDetail.journalsFilledDecimal} szt.
+                  </span>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full bg-[#181d2a] rounded-full h-3 overflow-hidden border border-[#2a344d] relative">
+                  <div
+                    className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: calcResult.journalDetail.fullJournalsCount > 0
+                        ? `${Math.min(100, Math.max(8, calcResult.journalDetail.partialPercent || 100))}%`
+                        : `${calcResult.journalDetail.partialPercent}%`
+                    }}
+                  />
+                </div>
+
+                <div className="mt-2 text-xs text-slate-300 font-medium">
+                  {calcResult.journalDetail.fullJournalsCount > 0 ? (
+                    <span>
+                      🎉 Napełnisz <strong className="text-purple-300 font-bold">{calcResult.journalDetail.fullJournalsCount} pełnych</strong> dzienników
+                      {calcResult.journalDetail.partialPercent > 0 && (
+                        <span className="text-slate-400"> + {calcResult.journalDetail.partialPercent}% kolejnego ({calcResult.journalDetail.partialFame.toLocaleString()} Fame)</span>
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-amber-400">
+                      ⚠️ Napełniono {calcResult.journalDetail.partialPercent}% dziennika ({calcResult.journalDetail.partialFame.toLocaleString()} / {calcResult.journalDetail.fameRequiredPerJournal.toLocaleString()} Fame)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Quantity of journals to trade selection */}
+              <div className="border-t border-[#1a2030] pt-2.5">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                  <span>{t.countToSell}:</span>
+                  <button
+                    onClick={() => setCustomJournalCount(null)}
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded transition ${
+                      customJournalCount === null
+                        ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Auto ({calcResult.journalDetail.fullJournalsCount})
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  {[1, 5, 10, 20].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setCustomJournalCount(num)}
+                      className={`px-2 py-1 text-xs font-mono rounded border transition ${
+                        (customJournalCount ?? calcResult.journalDetail?.fullJournalsCount) === num
+                          ? 'bg-purple-600 text-white border-purple-400 font-bold'
+                          : 'bg-[#181c2b] text-slate-400 border-slate-700 hover:text-white'
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                  <input
+                    type="number"
+                    min="0"
+                    max="1000"
+                    value={customJournalCount ?? calcResult.journalDetail.fullJournalsCount}
+                    onChange={(e) => {
+                      const v = parseInt(e.target.value);
+                      setCustomJournalCount(isNaN(v) ? null : Math.max(0, v));
+                    }}
+                    className="w-16 py-1 px-2 bg-[#121622] border border-[#2b334a] rounded text-xs font-mono text-purple-300 text-center focus:outline-none focus:border-purple-500 font-bold"
+                  />
+                  <span className="text-[11px] text-slate-400">szt.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Col 3: Financials & Net Journal Profit (4 cols) */}
+            <div className="lg:col-span-4 bg-[#0d1017] p-4 rounded-xl border border-[#22293b] flex flex-col justify-between space-y-3">
+              <div className="space-y-2 text-xs">
+                {/* Empty Journal Price */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-slate-300">
+                    <img src={getItemRenderUrl(calcResult.journalDetail.emptyId)} alt="Empty" className="w-5 h-5 object-contain" />
+                    <span>{t.emptyJournal}:</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      value={customPrices[calcResult.journalDetail.emptyId] !== undefined
+                        ? customPrices[calcResult.journalDetail.emptyId]
+                        : calcResult.journalDetail.emptyUnitPrice}
+                      onChange={(e) => handleCustomPriceChange(calcResult.journalDetail!.emptyId, e.target.value)}
+                      className="w-20 px-1.5 py-0.5 bg-[#121622] border border-[#2b334a] rounded text-right font-mono text-xs text-amber-300 focus:outline-none focus:border-amber-500"
+                    />
+                    {customPrices[calcResult.journalDetail.emptyId] !== undefined && (
+                      <button onClick={() => handleResetCustomPrice(calcResult.journalDetail!.emptyId)} className="text-slate-500 hover:text-amber-400">
+                        <RotateCcw className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Full Journal Price */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 text-slate-300">
+                    <img src={getItemRenderUrl(calcResult.journalDetail.fullId)} alt="Full" className="w-5 h-5 object-contain" />
+                    <span>{t.fullJournal}:</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      value={customPrices[calcResult.journalDetail.fullId] !== undefined
+                        ? customPrices[calcResult.journalDetail.fullId]
+                        : calcResult.journalDetail.fullUnitPrice}
+                      onChange={(e) => handleCustomPriceChange(calcResult.journalDetail!.fullId, e.target.value)}
+                      className="w-20 px-1.5 py-0.5 bg-[#121622] border border-[#2b334a] rounded text-right font-mono text-xs text-emerald-400 focus:outline-none focus:border-amber-500"
+                    />
+                    {customPrices[calcResult.journalDetail.fullId] !== undefined && (
+                      <button onClick={() => handleResetCustomPrice(calcResult.journalDetail!.fullId)} className="text-slate-500 hover:text-amber-400">
+                        <RotateCcw className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Breakdown Costs */}
+                <div className="text-[11px] text-slate-400 pt-1 border-t border-[#1a2030] flex justify-between">
+                  <span>Koszt zakupu ({calcResult.journalDetail.actualCountUsed} szt.):</span>
+                  <span className="font-mono text-red-400">-{calcResult.journalDetail.emptyTotalCost.toLocaleString()}</span>
+                </div>
+                <div className="text-[11px] text-slate-400 flex justify-between">
+                  <span>Przychód netto ze sprzedaży:</span>
+                  <span className="font-mono text-emerald-400">+{calcResult.journalDetail.fullNetRevenue.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Net Profit from Journals Highlight */}
+              <div className="bg-[#121724] border border-purple-500/30 rounded-lg p-2.5 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase font-bold text-purple-300 tracking-wider">
+                    {t.journalNetProfitLabel}
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    {calcResult.journalDetail.actualCountUsed} szt. dzienników
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={`text-lg font-black font-mono ${
+                    calcResult.journalDetail.journalNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'
+                  }`}>
+                    {calcResult.journalDetail.journalNetProfit > 0 ? '+' : ''}
+                    {calcResult.journalDetail.journalNetProfit.toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-slate-400">srebra</div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
         </div>
       )}
 
@@ -699,17 +1049,34 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
                 </tr>
 
                 {/* Journals Row if enabled */}
-                {settings.includeJournals && calcResult.journalsFilled > 0 && (
-                  <tr className="bg-[#121622]/50">
-                    <td colSpan={4} className="p-3.5 font-medium text-purple-300 flex items-center gap-1.5">
-                      <BookOpen className="w-4 h-4 text-purple-400" />
-                      {t.journalsFilled} ({calcResult.journalsFilled} szt. napełniono)
+                {settings.includeJournals && calcResult.journalDetail && calcResult.journalDetail.actualCountUsed > 0 && (
+                  <tr className="bg-[#19152b]/60 border-t border-purple-500/20">
+                    <td colSpan={3} className="p-3.5 font-medium text-purple-200">
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={getItemRenderUrl(calcResult.journalDetail.fullId)}
+                          alt="Full Journal"
+                          className="w-8 h-8 rounded bg-[#0b0d13] border border-purple-500/40 p-0.5 object-contain"
+                        />
+                        <div>
+                          <div className="font-bold flex items-center gap-1.5 text-purple-200">
+                            <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+                            {JOURNAL_INFO_MAP[calcResult.journalDetail.journalType]?.[language === 'pl' ? 'pl' : 'en'] || t.journalsFilled} (×{calcResult.journalDetail.actualCountUsed})
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            Zakup pustych: -{calcResult.journalDetail.emptyTotalCost.toLocaleString()} | Sprzedaż pełnych: +{calcResult.journalDetail.fullNetRevenue.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="p-3.5 text-right text-purple-300 font-mono text-[11px]">
-                      Zysk netto z dzienników
+                    <td className="p-3.5 text-center font-mono text-purple-300 font-bold">
+                      {calcResult.journalDetail.actualCountUsed} szt.
                     </td>
-                    <td className="p-3.5 text-right font-mono font-bold text-emerald-400">
-                      +{calcResult.journalNetProfit.toLocaleString()}
+                    <td className="p-3.5 text-right font-mono text-[11px] text-purple-300">
+                      Czysty zysk z dzienników
+                    </td>
+                    <td className="p-3.5 text-right font-mono font-bold text-emerald-400 text-sm">
+                      +{calcResult.journalDetail.journalNetProfit.toLocaleString()}
                     </td>
                   </tr>
                 )}
@@ -773,8 +1140,15 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
               </div>
               <div>
                 <span>{t.netRevenue}: </span>
-                <span className="font-mono font-bold text-emerald-400">{calcResult.netRevenue.toLocaleString()}</span>
+                <span className="font-mono font-bold text-emerald-400">{(calcResult.netRevenue + calcResult.journalFullRevenue).toLocaleString()}</span>
               </div>
+              {settings.includeJournals && calcResult.journalDetail && calcResult.journalDetail.actualCountUsed > 0 && (
+                <div className="text-purple-300 flex items-center gap-1 font-semibold">
+                  <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Zysk z dzienników: </span>
+                  <span className="font-mono text-emerald-400">+{calcResult.journalDetail.journalNetProfit.toLocaleString()}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-3">

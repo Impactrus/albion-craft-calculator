@@ -109,6 +109,28 @@ export interface MaterialCostDetail {
   isCustomPrice?: boolean;
 }
 
+export interface JournalCalculationDetail {
+  journalType: string;
+  tier: number;
+  emptyId: string;
+  fullId: string;
+  famePerCraft: number;
+  totalFame: number;
+  fameRequiredPerJournal: number;
+  journalsFilledDecimal: number;
+  fullJournalsCount: number;
+  partialPercent: number;
+  partialFame: number;
+  emptyUnitPrice: number;
+  fullUnitPrice: number;
+  emptyTotalCost: number;
+  fullNetRevenue: number;
+  journalNetProfit: number;
+  isCustomEmptyPrice: boolean;
+  isCustomFullPrice: boolean;
+  actualCountUsed: number;
+}
+
 export interface CalculationResult {
   item: AlbionItem;
   enchantment: number;
@@ -139,4 +161,5 @@ export interface CalculationResult {
   journalEmptyCost: number;
   journalFullRevenue: number;
   journalNetProfit: number;
+  journalDetail?: JournalCalculationDetail | null;
 }

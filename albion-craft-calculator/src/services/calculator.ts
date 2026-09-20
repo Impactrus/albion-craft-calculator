@@ -5,9 +5,53 @@ import {
   CalculationResult,
   MaterialCostDetail,
   PriceRecord,
-  JournalTierInfo
+  JournalTierInfo,
+  JournalCalculationDetail
 } from '../types/albion';
 import { getItemApiId, getMaterialPrice, getProductSellPrice } from './albionApi';
+
+/**
+ * Calculate the exact Crafting Fame awarded per 1 craft of an item at a given enchantment level.
+ * In Albion Online, equipment crafting fame is determined by the refined resources used:
+ * T4: 22.5 per resource (.0), 45 (.1), 90 (.2), 180 (.3), 360 (.4)
+ * T5: 90 (.0), 180 (.1), 360 (.2), 720 (.3), 1440 (.4)
+ * T6: 270 (.0), 540 (.1), 1080 (.2), 2160 (.3), 4320 (.4)
+ * T7: 645 (.0), 1290 (.1), 2580 (.2), 5160 (.3), 10320 (.4)
+ * T8: 1395 (.0), 2790 (.1), 5580 (.2), 11160 (.3), 22320 (.4)
+ */
+export function getItemCraftingFame(item: AlbionItem, enchantment: number): number {
+  const encKey = String(enchantment);
+  const recipe = item.recipes[encKey] || item.recipes['0'];
+  if (!recipe || !recipe.resources) return 0;
+
+  const FAME_PER_RESOURCE: Record<number, Record<number, number>> = {
+    4: { 0: 22.5, 1: 45, 2: 90, 3: 180, 4: 360 },
+    5: { 0: 90, 1: 180, 2: 360, 3: 720, 4: 1440 },
+    6: { 0: 270, 1: 540, 2: 1080, 3: 2160, 4: 4320 },
+    7: { 0: 645, 1: 1290, 2: 2580, 3: 5160, 4: 10320 },
+    8: { 0: 1395, 1: 2790, 2: 5580, 3: 11160, 4: 22320 },
+  };
+
+  let totalFame = 0;
+  for (const res of recipe.resources) {
+    // Only primary refined resources award journal fame (not artifacts)
+    const isPrimary = res.id.includes('PLANKS') || res.id.includes('METALBAR') || 
+                      res.id.includes('LEATHER') || res.id.includes('CLOTH') || 
+                      res.id.includes('STONEBLOCK');
+    if (isPrimary) {
+      const famePerUnit = FAME_PER_RESOURCE[item.tier]?.[enchantment] ?? 
+                          (22.5 * Math.pow(2, enchantment));
+      totalFame += res.count * famePerUnit;
+    }
+  }
+
+  // Fallback if not calculated from primary resources
+  if (totalFame === 0 && item.craftingFame > 0) {
+    totalFame = item.craftingFame * Math.pow(2, enchantment);
+  }
+
+  return totalFame;
+}
 
 /**
  * Check if the item qualifies for city crafting or refining bonus
@@ -87,7 +131,8 @@ export function calculateCrafting(
   customPrices: Record<string, number>,
   cityBonuses: Record<string, { refining: string[]; crafting: string[] }>,
   journalData?: Record<string, Record<string, JournalTierInfo>>,
-  quality: number = 1
+  quality: number = 1,
+  customJournalCount?: number | null
 ): CalculationResult {
   const encKey = String(enchantment);
   const recipe = item.recipes[encKey] || item.recipes['0'];
@@ -190,21 +235,59 @@ export function calculateCrafting(
   let journalEmptyCost = 0;
   let journalFullRevenue = 0;
   let journalNetProfit = 0;
+  let journalDetail: JournalCalculationDetail | null = null;
 
-  if (settings.includeJournals && item.journalType && journalData && journalData[item.journalType]) {
-    const tierKey = `T${item.tier}`;
+  if (item.journalType && journalData && journalData[item.journalType]) {
+    const tierKey = `T${Math.max(4, item.tier)}`;
     const jInfo = journalData[item.journalType][tierKey];
-    if (jInfo && jInfo.fame > 0 && item.craftingFame > 0) {
-      const totalFame = item.craftingFame * quantity;
-      journalsFilled = Math.round((totalFame / jInfo.fame) * 10) / 10;
+    if (jInfo && jInfo.fame > 0) {
+      const famePerCraft = getItemCraftingFame(item, enchantment);
+      const totalFame = famePerCraft * quantity;
+      const fameRequiredPerJournal = jInfo.fame;
+      const journalsFilledDecimal = Math.round((totalFame / fameRequiredPerJournal) * 100) / 100;
+      const fullJournalsCount = Math.floor(journalsFilledDecimal);
+      const partialFame = totalFame % fameRequiredPerJournal;
+      const partialPercent = Math.round((partialFame / fameRequiredPerJournal) * 100);
+
+      // Determine actual count used: if customJournalCount provided use that, otherwise default to fullJournalsCount
+      const actualCountUsed = customJournalCount !== undefined && customJournalCount !== null
+        ? customJournalCount
+        : fullJournalsCount;
 
       const emptyPrice = getMaterialPrice(priceMap.get(jInfo.empty), settings.craftCity, 'direct_buy', customPrices[jInfo.empty]);
       const fullPrice = getProductSellPrice(priceMap.get(jInfo.full), settings.sellCity, settings.sellOrderType, 1, customPrices[jInfo.full]);
 
-      journalEmptyCost = Math.round(journalsFilled * emptyPrice);
-      const fullGross = Math.round(journalsFilled * fullPrice);
-      journalFullRevenue = Math.round(fullGross * (1 - salesTaxRate - setupFeeRate));
-      journalNetProfit = Math.max(0, journalFullRevenue - journalEmptyCost);
+      const emptyTotalCost = Math.round(actualCountUsed * emptyPrice);
+      const fullGross = Math.round(actualCountUsed * fullPrice);
+      const fullNetRevenue = Math.round(fullGross * (1 - salesTaxRate - setupFeeRate));
+      const netJournalProfit = fullNetRevenue - emptyTotalCost;
+
+      journalsFilled = journalsFilledDecimal;
+      journalEmptyCost = settings.includeJournals ? emptyTotalCost : 0;
+      journalFullRevenue = settings.includeJournals ? fullNetRevenue : 0;
+      journalNetProfit = netJournalProfit;
+
+      journalDetail = {
+        journalType: item.journalType,
+        tier: Math.max(4, item.tier),
+        emptyId: jInfo.empty,
+        fullId: jInfo.full,
+        famePerCraft,
+        totalFame,
+        fameRequiredPerJournal,
+        journalsFilledDecimal,
+        fullJournalsCount,
+        partialPercent,
+        partialFame,
+        emptyUnitPrice: emptyPrice,
+        fullUnitPrice: fullPrice,
+        emptyTotalCost,
+        fullNetRevenue,
+        journalNetProfit: netJournalProfit,
+        isCustomEmptyPrice: customPrices[jInfo.empty] !== undefined,
+        isCustomFullPrice: customPrices[jInfo.full] !== undefined,
+        actualCountUsed
+      };
     }
   }
 
@@ -269,6 +352,7 @@ export function calculateCrafting(
     journalsFilled,
     journalEmptyCost,
     journalFullRevenue,
-    journalNetProfit
+    journalNetProfit,
+    journalDetail
   };
 }
