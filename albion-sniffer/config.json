@@ -1,0 +1,5 @@
+{
+  "PrivateIngestBaseUrls": "http://localhost:5050",
+  "DisableUpload": false,
+  "LogLevel": "INFO"
+}
