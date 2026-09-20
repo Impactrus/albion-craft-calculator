@@ -231,32 +231,32 @@ def run_extraction():
 
     journals_info = {
         "blacksmith": {
-            "T4": { "empty": "T4_JOURNAL_WARRIOR_EMPTY", "full": "T4_JOURNAL_WARRIOR_FULL", "fame": 1800 },
-            "T5": { "empty": "T5_JOURNAL_WARRIOR_EMPTY", "full": "T5_JOURNAL_WARRIOR_FULL", "fame": 3600 },
-            "T6": { "empty": "T6_JOURNAL_WARRIOR_EMPTY", "full": "T6_JOURNAL_WARRIOR_FULL", "fame": 7200 },
-            "T7": { "empty": "T7_JOURNAL_WARRIOR_EMPTY", "full": "T7_JOURNAL_WARRIOR_FULL", "fame": 14400 },
-            "T8": { "empty": "T8_JOURNAL_WARRIOR_EMPTY", "full": "T8_JOURNAL_WARRIOR_FULL", "fame": 28800 }
+            "T4": { "empty": "T4_JOURNAL_WARRIOR_EMPTY", "full": "T4_JOURNAL_WARRIOR_FULL", "fame": 3600 },
+            "T5": { "empty": "T5_JOURNAL_WARRIOR_EMPTY", "full": "T5_JOURNAL_WARRIOR_FULL", "fame": 7200 },
+            "T6": { "empty": "T6_JOURNAL_WARRIOR_EMPTY", "full": "T6_JOURNAL_WARRIOR_FULL", "fame": 14400 },
+            "T7": { "empty": "T7_JOURNAL_WARRIOR_EMPTY", "full": "T7_JOURNAL_WARRIOR_FULL", "fame": 28380 },
+            "T8": { "empty": "T8_JOURNAL_WARRIOR_EMPTY", "full": "T8_JOURNAL_WARRIOR_FULL", "fame": 58590 }
         },
         "fletcher": {
-            "T4": { "empty": "T4_JOURNAL_HUNTER_EMPTY", "full": "T4_JOURNAL_HUNTER_FULL", "fame": 1800 },
-            "T5": { "empty": "T5_JOURNAL_HUNTER_EMPTY", "full": "T5_JOURNAL_HUNTER_FULL", "fame": 3600 },
-            "T6": { "empty": "T6_JOURNAL_HUNTER_EMPTY", "full": "T6_JOURNAL_HUNTER_FULL", "fame": 7200 },
-            "T7": { "empty": "T7_JOURNAL_HUNTER_EMPTY", "full": "T7_JOURNAL_HUNTER_FULL", "fame": 14400 },
-            "T8": { "empty": "T8_JOURNAL_HUNTER_EMPTY", "full": "T8_JOURNAL_HUNTER_FULL", "fame": 28800 }
+            "T4": { "empty": "T4_JOURNAL_HUNTER_EMPTY", "full": "T4_JOURNAL_HUNTER_FULL", "fame": 3600 },
+            "T5": { "empty": "T5_JOURNAL_HUNTER_EMPTY", "full": "T5_JOURNAL_HUNTER_FULL", "fame": 7200 },
+            "T6": { "empty": "T6_JOURNAL_HUNTER_EMPTY", "full": "T6_JOURNAL_HUNTER_FULL", "fame": 14400 },
+            "T7": { "empty": "T7_JOURNAL_HUNTER_EMPTY", "full": "T7_JOURNAL_HUNTER_FULL", "fame": 28380 },
+            "T8": { "empty": "T8_JOURNAL_HUNTER_EMPTY", "full": "T8_JOURNAL_HUNTER_FULL", "fame": 58590 }
         },
         "imbuer": {
-            "T4": { "empty": "T4_JOURNAL_MAGE_EMPTY", "full": "T4_JOURNAL_MAGE_FULL", "fame": 1800 },
-            "T5": { "empty": "T5_JOURNAL_MAGE_EMPTY", "full": "T5_JOURNAL_MAGE_FULL", "fame": 3600 },
-            "T6": { "empty": "T6_JOURNAL_MAGE_EMPTY", "full": "T6_JOURNAL_MAGE_FULL", "fame": 7200 },
-            "T7": { "empty": "T7_JOURNAL_MAGE_EMPTY", "full": "T7_JOURNAL_MAGE_FULL", "fame": 14400 },
-            "T8": { "empty": "T8_JOURNAL_MAGE_EMPTY", "full": "T8_JOURNAL_MAGE_FULL", "fame": 28800 }
+            "T4": { "empty": "T4_JOURNAL_MAGE_EMPTY", "full": "T4_JOURNAL_MAGE_FULL", "fame": 3600 },
+            "T5": { "empty": "T5_JOURNAL_MAGE_EMPTY", "full": "T5_JOURNAL_MAGE_FULL", "fame": 7200 },
+            "T6": { "empty": "T6_JOURNAL_MAGE_EMPTY", "full": "T6_JOURNAL_MAGE_FULL", "fame": 14400 },
+            "T7": { "empty": "T7_JOURNAL_MAGE_EMPTY", "full": "T7_JOURNAL_MAGE_FULL", "fame": 28380 },
+            "T8": { "empty": "T8_JOURNAL_MAGE_EMPTY", "full": "T8_JOURNAL_MAGE_FULL", "fame": 58590 }
         },
         "tinker": {
-            "T4": { "empty": "T4_JOURNAL_TOOLMAKER_EMPTY", "full": "T4_JOURNAL_TOOLMAKER_FULL", "fame": 1800 },
-            "T5": { "empty": "T5_JOURNAL_TOOLMAKER_EMPTY", "full": "T5_JOURNAL_TOOLMAKER_FULL", "fame": 3600 },
-            "T6": { "empty": "T6_JOURNAL_TOOLMAKER_EMPTY", "full": "T6_JOURNAL_TOOLMAKER_FULL", "fame": 7200 },
-            "T7": { "empty": "T7_JOURNAL_TOOLMAKER_EMPTY", "full": "T7_JOURNAL_TOOLMAKER_FULL", "fame": 14400 },
-            "T8": { "empty": "T8_JOURNAL_TOOLMAKER_EMPTY", "full": "T8_JOURNAL_TOOLMAKER_FULL", "fame": 28800 }
+            "T4": { "empty": "T4_JOURNAL_TOOLMAKER_EMPTY", "full": "T4_JOURNAL_TOOLMAKER_FULL", "fame": 3600 },
+            "T5": { "empty": "T5_JOURNAL_TOOLMAKER_EMPTY", "full": "T5_JOURNAL_TOOLMAKER_FULL", "fame": 7200 },
+            "T6": { "empty": "T6_JOURNAL_TOOLMAKER_EMPTY", "full": "T6_JOURNAL_TOOLMAKER_FULL", "fame": 14400 },
+            "T7": { "empty": "T7_JOURNAL_TOOLMAKER_EMPTY", "full": "T7_JOURNAL_TOOLMAKER_FULL", "fame": 28380 },
+            "T8": { "empty": "T8_JOURNAL_TOOLMAKER_EMPTY", "full": "T8_JOURNAL_TOOLMAKER_FULL", "fame": 58590 }
         }
     }
 
