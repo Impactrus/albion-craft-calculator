@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   AlbionItem,
   City,
@@ -169,6 +169,69 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
     if (!selectedItem) return false;
     return hasCityBonus(selectedItem, settings.craftCity, cityBonuses);
   }, [selectedItem, settings.craftCity, cityBonuses]);
+
+  const requestedIdsRef = useRef<Set<string>>(new Set());
+
+  // Clear requested IDs cache if server changes
+  useEffect(() => {
+    requestedIdsRef.current.clear();
+  }, [settings.server]);
+
+  // Auto-fetch missing prices for selected item, materials, and laborer journals
+  useEffect(() => {
+    if (!selectedItem) return;
+
+    const idsToFetch: string[] = [];
+
+    // 1. Product ID
+    const prodId = getItemApiId(selectedItem, enchantment);
+    if (!priceMap.has(prodId) && !requestedIdsRef.current.has(prodId)) {
+      idsToFetch.push(prodId);
+    }
+
+    // 2. Recipe Materials IDs
+    const recipe = selectedItem.recipes[String(enchantment)] || selectedItem.recipes['0'];
+    if (recipe && recipe.resources) {
+      for (const r of recipe.resources) {
+        if (!priceMap.has(r.id) && !requestedIdsRef.current.has(r.id)) {
+          idsToFetch.push(r.id);
+        }
+      }
+    }
+
+    // 3. Laborer Crafting Journals (Empty & Full)
+    if (selectedItem.journalType && journalData && journalData[selectedItem.journalType]) {
+      const tierKey = `T${Math.max(4, selectedItem.tier)}`;
+      const jInfo = journalData[selectedItem.journalType][tierKey];
+      if (jInfo) {
+        if (!priceMap.has(jInfo.empty) && !requestedIdsRef.current.has(jInfo.empty)) {
+          idsToFetch.push(jInfo.empty);
+        }
+        if (!priceMap.has(jInfo.full) && !requestedIdsRef.current.has(jInfo.full)) {
+          idsToFetch.push(jInfo.full);
+        }
+      }
+    }
+
+    if (idsToFetch.length > 0) {
+      idsToFetch.forEach((id) => requestedIdsRef.current.add(id));
+      onRefreshPrices(idsToFetch);
+    }
+  }, [selectedItemId, enchantment, selectedItem, journalData, priceMap, onRefreshPrices]);
+
+  // Handle toggling journals and immediately fetching their prices
+  const handleToggleJournals = () => {
+    const nextState = !settings.includeJournals;
+    onUpdateSettings({ includeJournals: nextState });
+
+    if (nextState && selectedItem?.journalType && journalData && journalData[selectedItem.journalType]) {
+      const tierKey = `T${Math.max(4, selectedItem.tier)}`;
+      const jInfo = journalData[selectedItem.journalType][tierKey];
+      if (jInfo) {
+        onRefreshPrices([jInfo.empty, jInfo.full]);
+      }
+    }
+  };
 
   // Handle refreshing prices for currently viewed item, materials & journals
   const handleRefreshCurrent = async () => {
@@ -519,7 +582,7 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
             {/* Journal Quick Button */}
             {selectedItem.journalType && (
               <button
-                onClick={() => onUpdateSettings({ includeJournals: !settings.includeJournals })}
+                onClick={handleToggleJournals}
                 className={`w-full py-2 px-3 rounded-lg border font-semibold text-xs flex items-center justify-between transition-all ${
                   settings.includeJournals
                     ? 'bg-purple-500/20 text-purple-300 border-purple-500/60 shadow-md shadow-purple-950/40'
@@ -878,7 +941,8 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
                       type="number"
                       value={customPrices[calcResult.journalDetail.emptyId] !== undefined
                         ? customPrices[calcResult.journalDetail.emptyId]
-                        : calcResult.journalDetail.emptyUnitPrice}
+                        : (calcResult.journalDetail.emptyUnitPrice || '')}
+                      placeholder="0"
                       onChange={(e) => handleCustomPriceChange(calcResult.journalDetail!.emptyId, e.target.value)}
                       className="w-20 px-1.5 py-0.5 bg-[#121622] border border-[#2b334a] rounded text-right font-mono text-xs text-amber-300 focus:outline-none focus:border-amber-500"
                     />
@@ -889,6 +953,11 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
                     )}
                   </div>
                 </div>
+                {calcResult.journalDetail.emptyUnitPrice === 0 && customPrices[calcResult.journalDetail.emptyId] === undefined && (
+                  <div className="text-[10px] text-amber-400/80 text-right">
+                    {language === 'pl' ? 'Brak w AODP – wpisz cenę z rynku' : 'No AODP price – enter market price'}
+                  </div>
+                )}
 
                 {/* Full Journal Price */}
                 <div className="flex items-center justify-between gap-2">
@@ -901,7 +970,8 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
                       type="number"
                       value={customPrices[calcResult.journalDetail.fullId] !== undefined
                         ? customPrices[calcResult.journalDetail.fullId]
-                        : calcResult.journalDetail.fullUnitPrice}
+                        : (calcResult.journalDetail.fullUnitPrice || '')}
+                      placeholder="0"
                       onChange={(e) => handleCustomPriceChange(calcResult.journalDetail!.fullId, e.target.value)}
                       className="w-20 px-1.5 py-0.5 bg-[#121622] border border-[#2b334a] rounded text-right font-mono text-xs text-emerald-400 focus:outline-none focus:border-amber-500"
                     />
@@ -911,6 +981,23 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
                       </button>
                     )}
                   </div>
+                </div>
+                {calcResult.journalDetail.fullUnitPrice === 0 && customPrices[calcResult.journalDetail.fullId] === undefined && (
+                  <div className="text-[10px] text-amber-400/80 text-right">
+                    {language === 'pl' ? 'Brak w AODP – wpisz cenę z rynku' : 'No AODP price – enter market price'}
+                  </div>
+                )}
+
+                {/* Quick Journal Price Refresh */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => onRefreshPrices([calcResult.journalDetail!.emptyId, calcResult.journalDetail!.fullId])}
+                    disabled={isLoadingPrices}
+                    className="text-[10px] text-purple-400 hover:text-purple-300 flex items-center gap-1 transition"
+                  >
+                    <RefreshCw className={`w-2.5 h-2.5 ${isLoadingPrices ? 'animate-spin' : ''}`} />
+                    <span>{language === 'pl' ? 'Odśwież ceny dzienników' : 'Refresh journal prices'}</span>
+                  </button>
                 </div>
 
                 {/* Breakdown Costs */}

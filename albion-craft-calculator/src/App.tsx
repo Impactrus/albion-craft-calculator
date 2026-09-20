@@ -220,7 +220,7 @@ export function App() {
     [settings.server]
   );
 
-  // Pre-load common prices on startup
+  // Pre-load common prices and crafting journals on startup
   useEffect(() => {
     const commonIds = [
       'T4_MAIN_SWORD',
@@ -233,7 +233,32 @@ export function App() {
       'T4_BAG',
       'T4_ARMOR_PLATE_SET1',
       'T5_MAIN_SWORD',
-      'T6_MAIN_SWORD'
+      'T6_MAIN_SWORD',
+      // Laborer Crafting Journals (Empty & Full)
+      'T4_JOURNAL_WARRIOR_EMPTY',
+      'T4_JOURNAL_WARRIOR_FULL',
+      'T5_JOURNAL_WARRIOR_EMPTY',
+      'T5_JOURNAL_WARRIOR_FULL',
+      'T6_JOURNAL_WARRIOR_EMPTY',
+      'T6_JOURNAL_WARRIOR_FULL',
+      'T4_JOURNAL_HUNTER_EMPTY',
+      'T4_JOURNAL_HUNTER_FULL',
+      'T5_JOURNAL_HUNTER_EMPTY',
+      'T5_JOURNAL_HUNTER_FULL',
+      'T6_JOURNAL_HUNTER_EMPTY',
+      'T6_JOURNAL_HUNTER_FULL',
+      'T4_JOURNAL_MAGE_EMPTY',
+      'T4_JOURNAL_MAGE_FULL',
+      'T5_JOURNAL_MAGE_EMPTY',
+      'T5_JOURNAL_MAGE_FULL',
+      'T6_JOURNAL_MAGE_EMPTY',
+      'T6_JOURNAL_MAGE_FULL',
+      'T4_JOURNAL_TOOLMAKER_EMPTY',
+      'T4_JOURNAL_TOOLMAKER_FULL',
+      'T5_JOURNAL_TOOLMAKER_EMPTY',
+      'T5_JOURNAL_TOOLMAKER_FULL',
+      'T6_JOURNAL_TOOLMAKER_EMPTY',
+      'T6_JOURNAL_TOOLMAKER_FULL'
     ];
     fetchPrices(settings.server, commonIds).then((fetched) => {
       setPriceMap((prev) => {

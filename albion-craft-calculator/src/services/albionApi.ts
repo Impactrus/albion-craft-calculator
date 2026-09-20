@@ -7,6 +7,8 @@ const BASE_URLS: Record<ServerRegion, string> = {
 };
 
 // Local cache for fetched prices: key = `${server}_${itemId}_${city}`
+// Local cache for fetched prices: key = `${server}_${itemId}`
+const itemRecordsCache: Map<string, { records: PriceRecord[]; timestamp: number }> = new Map();
 const priceCache: Map<string, { record: PriceRecord; timestamp: number }> = new Map();
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
@@ -42,20 +44,10 @@ export async function fetchPrices(
   // Check cache first if not forced
   if (!forceRefresh) {
     for (const id of itemIds) {
-      const records: PriceRecord[] = [];
-      let allFound = true;
-      for (const loc of locations) {
-        const cacheKey = `${server}_${id}_${loc}`;
-        const cached = priceCache.get(cacheKey);
-        if (cached && (now - cached.timestamp < CACHE_TTL_MS)) {
-          records.push(cached.record);
-        } else {
-          allFound = false;
-          break;
-        }
-      }
-      if (allFound && records.length > 0) {
-        result.set(id, records);
+      const cacheKey = `${server}_${id}`;
+      const cached = itemRecordsCache.get(cacheKey);
+      if (cached && (now - cached.timestamp < CACHE_TTL_MS)) {
+        result.set(id, cached.records);
       } else {
         missingIds.push(id);
       }
@@ -92,9 +84,9 @@ export async function fetchPrices(
       const data: PriceRecord[] = await response.json();
 
       for (const record of data) {
-        // Cache entry
-        const cacheKey = `${server}_${record.item_id}_${record.city}`;
-        priceCache.set(cacheKey, { record, timestamp: now });
+        // Cache individual city record
+        const cityKey = `${server}_${record.item_id}_${record.city}`;
+        priceCache.set(cityKey, { record, timestamp: now });
 
         if (!result.has(record.item_id)) {
           result.set(record.item_id, []);
@@ -104,6 +96,15 @@ export async function fetchPrices(
     } catch (err) {
       console.error(`Error fetching prices chunk:`, err);
     }
+  }
+
+  // Ensure all missing IDs have an entry in result and itemRecordsCache
+  for (const id of uniqueMissing) {
+    const records = result.get(id) || [];
+    if (!result.has(id)) {
+      result.set(id, records);
+    }
+    itemRecordsCache.set(`${server}_${id}`, { records, timestamp: now });
   }
 
   return result;
@@ -150,7 +151,9 @@ export function getMaterialPrice(
 }
 
 /**
- * Helper to determine sell price for crafted product
+ * Helper to determine sell price for crafted product or full journal.
+ * Prioritizes the chosen sell city, but seamlessly falls back to global minimum/maximum
+ * across all scanned markets if the chosen city has no active price data.
  */
 export function getProductSellPrice(
   records: PriceRecord[] | undefined,
@@ -166,35 +169,51 @@ export function getProductSellPrice(
     return 0;
   }
 
-  let list = records.filter(r => r.city.toLowerCase() === city.toLowerCase());
-  if (list.length === 0) {
-    list = records;
-  }
-
-  // Filter for requested quality if available
-  const qualityList = list.filter(r => r.quality === quality);
-  const targetList = qualityList.length > 0 ? qualityList : list;
+  // 1. City-specific records
+  const cityRecords = records.filter(r => r.city.toLowerCase() === city.toLowerCase());
+  const qualityCityRecords = cityRecords.filter(r => r.quality === quality);
+  const targetCityRecords = qualityCityRecords.length > 0 ? qualityCityRecords : cityRecords;
 
   if (orderType === 'sell_order') {
-    // Sell Order: match minimum sell price in market
-    const validSell = targetList.filter(r => r.sell_price_min > 0);
+    const validSell = targetCityRecords.filter(r => r.sell_price_min > 0);
     if (validSell.length > 0) {
       return Math.min(...validSell.map(r => r.sell_price_min));
     }
   } else {
-    // Direct Sell: sell immediately to highest buy order
-    const validBuy = targetList.filter(r => r.buy_price_max > 0);
+    const validBuy = targetCityRecords.filter(r => r.buy_price_max > 0);
     if (validBuy.length > 0) {
       return Math.max(...validBuy.map(r => r.buy_price_max));
     }
   }
 
-  // Fallbacks
-  const anySell = targetList.filter(r => r.sell_price_min > 0);
-  if (anySell.length > 0) return Math.min(...anySell.map(r => r.sell_price_min));
+  // Fallback 1: any positive sell/buy price in target city
+  const anySellCity = targetCityRecords.filter(r => r.sell_price_min > 0);
+  if (anySellCity.length > 0) return Math.min(...anySellCity.map(r => r.sell_price_min));
 
-  const anyBuy = targetList.filter(r => r.buy_price_max > 0);
-  if (anyBuy.length > 0) return Math.max(...anyBuy.map(r => r.buy_price_max));
+  const anyBuyCity = targetCityRecords.filter(r => r.buy_price_max > 0);
+  if (anyBuyCity.length > 0) return Math.max(...anyBuyCity.map(r => r.buy_price_max));
+
+  // Fallback 2: fallback to global across all cities if specific city has no price data
+  const qualityGlobalRecords = records.filter(r => r.quality === quality);
+  const targetGlobalRecords = qualityGlobalRecords.length > 0 ? qualityGlobalRecords : records;
+
+  if (orderType === 'sell_order') {
+    const validSellGlobal = targetGlobalRecords.filter(r => r.sell_price_min > 0);
+    if (validSellGlobal.length > 0) {
+      return Math.min(...validSellGlobal.map(r => r.sell_price_min));
+    }
+  } else {
+    const validBuyGlobal = targetGlobalRecords.filter(r => r.buy_price_max > 0);
+    if (validBuyGlobal.length > 0) {
+      return Math.max(...validBuyGlobal.map(r => r.buy_price_max));
+    }
+  }
+
+  const anySellGlobal = records.filter(r => r.sell_price_min > 0);
+  if (anySellGlobal.length > 0) return Math.min(...anySellGlobal.map(r => r.sell_price_min));
+
+  const anyBuyGlobal = records.filter(r => r.buy_price_max > 0);
+  if (anyBuyGlobal.length > 0) return Math.max(...anyBuyGlobal.map(r => r.buy_price_max));
 
   return 0;
 }
