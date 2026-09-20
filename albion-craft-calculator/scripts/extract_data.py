@@ -156,23 +156,42 @@ def run_extraction():
                 continue
 
             journal_type = None
-            if broad_cat == "weapons":
-                if any(w in normalized_subcat for w in ["sword", "axe", "mace", "hammer", "crossbow", "shield"]):
-                    journal_type = "blacksmith"
-                elif any(w in normalized_subcat for w in ["bow", "spear", "dagger", "quarterstaff", "naturestaff"]):
-                    journal_type = "fletcher"
-                elif any(w in normalized_subcat for w in ["firestaff", "froststaff", "arcanestaff", "holystaff", "cursedstaff"]):
-                    journal_type = "imbuer"
-            elif broad_cat in ["equipment", "armors"]:
-                if "plate" in normalized_subcat or "plate" in uname.lower():
-                    journal_type = "blacksmith"
-                elif "leather" in normalized_subcat or "leather" in uname.lower():
-                    journal_type = "fletcher"
-                elif "cloth" in normalized_subcat or "cloth" in uname.lower():
-                    journal_type = "imbuer"
-                elif "bag" in uname.lower() or "cape" in uname.lower():
+            uname_lower = uname.lower()
+            norm_sub_lower = normalized_subcat.lower()
+
+            # 1. Blacksmith (Warrior): swords, axes, maces, hammers, crossbows, war gloves (knuckles), shields, plate armor
+            if (
+                any(w in norm_sub_lower for w in ["sword", "axe", "mace", "hammer", "crossbow", "knuckles", "shield"]) or
+                any(w in uname_lower for w in ["sword", "axe", "mace", "hammer", "crossbow", "knuckles", "shield", "plate"]) or
+                "plate" in norm_sub_lower
+            ):
+                if "tool_" in uname_lower:
                     journal_type = "tinker"
-            elif broad_cat == "tools":
+                else:
+                    journal_type = "blacksmith"
+
+            # 2. Fletcher (Hunter): bows, spears, daggers, quarterstaffs, nature staves, torches/horns/mistcallers, leather armor
+            elif (
+                any(w in norm_sub_lower for w in ["bow", "spear", "dagger", "quarterstaff", "naturestaff", "torch"]) or
+                any(w in uname_lower for w in ["bow", "spear", "pike", "glaive", "dagger", "claw", "quarterstaff", "ironclad", "doublebladed", "naturestaff", "wildstaff", "torch", "horn", "mistcaller", "leering", "cryptcandle", "leather"]) or
+                "leather" in norm_sub_lower
+            ):
+                journal_type = "fletcher"
+
+            # 3. Imbuer (Mage): fire, frost, arcane, holy, curse, shapeshifter, books/tomes/orbs, cloth armor
+            elif (
+                any(w in norm_sub_lower for w in ["fire", "frost", "arcane", "holy", "curse", "shapeshifter", "book"]) or
+                any(w in uname_lower for w in ["firestaff", "froststaff", "icicle", "glacial", "arcanestaff", "occult", "enigmatic", "holystaff", "divine", "lifetouch", "fallen", "cursestaff", "cursed", "demonic", "skull", "shapeshifter", "book", "tome", "orb", "eye", "muisak", "taproot", "cloth"]) or
+                "cloth" in norm_sub_lower
+            ):
+                journal_type = "imbuer"
+
+            # 4. Tinker (Toolmaker): bags, satchels, capes, cloaks, tools, gathering gear
+            elif (
+                any(w in norm_sub_lower for w in ["bag", "cape", "cloak", "tool", "ore", "rock", "wood", "fiber", "hide", "fish"]) or
+                any(w in uname_lower for w in ["bag", "satchel", "cape", "cloak", "tool_", "harvester", "skinner", "miner", "quarrier", "lumberjack", "fisherman"]) or
+                broad_cat == "tools"
+            ):
                 journal_type = "tinker"
 
             names = name_map.get(uname, { "en": uname, "pl": uname })
