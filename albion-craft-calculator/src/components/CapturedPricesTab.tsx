@@ -69,13 +69,13 @@ export const CapturedPricesTab: React.FC<CapturedPricesTabProps> = ({
 
   const pl = language === "pl";
   const t = {
-    title: pl ? "Przechwycone Pakiety z Rynku" : "Captured Market Packets",
-    subtitle: pl ? "Ceny automatycznie synchronizują się z kalkulatorem." : "Prices sync automatically to the calculator.",
-    snifferActive: pl ? "Sniffer Aktywny" : "Sniffer Active",
-    snifferInactive: pl ? "Brak sniffera" : "Sniffer offline",
-    sendTest: pl ? "Testowy pakiet" : "Test Packet",
-    clear: pl ? "Wyczyść" : "Clear",
-    searchPlaceholder: pl ? "Szukaj po nazwie lub ID..." : "Filter by name or ID...",
+    title: pl ? "🦌 Leśny Zwiad Rynkowy (Pakiety na Żywo)" : "🦌 Forest Market Scouting (Live Feed)",
+    subtitle: pl ? "Duch puszczy podsłuchuje targowiska Albionu i aktualizuje Twoją prywatną kronikę cen." : "The forest spirit overhears Albion markets and updates your private ledger.",
+    snifferActive: pl ? "🌲 Duch Czuwa (Sniffer Live)" : "🌲 Spirit Awoken (Live)",
+    snifferInactive: pl ? "🍂 Duch Uśpiony" : "🍂 Spirit Asleep",
+    sendTest: pl ? "✨ Leśny impuls testowy" : "✨ Send Druidic Pulse",
+    clear: pl ? "Wyczyść zwoje" : "Clear",
+    searchPlaceholder: pl ? "Szukaj w leśnych zwojach (nazwa, ID)..." : "Filter by name or ID...",
     allCities: pl ? "Wszystkie miasta" : "All Cities",
     allTypes: pl ? "Wszystkie typy" : "All Types",
     allQualities: pl ? "Wszystkie jakości" : "All Qualities",
@@ -89,11 +89,11 @@ export const CapturedPricesTab: React.FC<CapturedPricesTabProps> = ({
     priceCol: pl ? "Cena / szt." : "Price / unit",
     timeCol: pl ? "Czas" : "Time",
     emptyNotice: pl
-      ? "Brak ofert. Wejdź do gry, zmień strefę i otwórz rynek — ceny pojawią się automatycznie."
-      : "No packets yet. Enter game, change zone, open marketplace — prices appear automatically.",
+      ? "Zwoje są puste. Otwórz Albion Online i podejdź do tablicy rynku — leśny zwiad natychmiast przechwyci ceny!"
+      : "Scrolls are blank. Open Albion Online and inspect marketplace — forest scouts will capture prices immediately!",
     autoSyncInfo: pl
-      ? "Ceny wskakują automatycznie do Kalkulatora i Skanera Zysku — bez klikania!"
-      : "Prices sync automatically into the Planner and Profit Scanner — no clicks needed!",
+      ? "Ceny wskakują automatycznie do Gaju Rzemiosła i Oka Druida — w 100% lokalnie i bez klikania!"
+      : "Prices sync automatically into the Craft Grove and Druid Eye — 100% locally with zero clicks!",
   };
 
   return (

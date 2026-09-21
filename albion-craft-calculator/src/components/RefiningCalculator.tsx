@@ -106,20 +106,20 @@ export const RefiningCalculator: React.FC<RefiningCalculatorProps> = ({
   };
 
   const t = {
-    title: language === 'pl' ? 'Kalkulator Przetwórstwa (Refining Calculator)' : 'Refining Profit Calculator',
+    title: language === 'pl' ? '🍃 Przetwórstwo Żywiołów Natury' : '🍃 Nature Elements Refining',
     subtitle: language === 'pl' 
-      ? `Optymalne miasto z bonusem: ${meta.bonusCity} (RRR: 36.7% / 53.9% z focusem)`
-      : `Optimal bonus city: ${meta.bonusCity} (RRR: 36.7% / 53.9% with focus)`,
+      ? `Gaj obfitości z bonusem: ${meta.bonusCity} (Zwrot RRR: 36.7% / 53.9% z focusem)`
+      : `Bountiful grove with bonus: ${meta.bonusCity} (RRR: 36.7% / 53.9% with focus)`,
     switchToBonusCity: language === 'pl' ? `Ustaw ${meta.bonusCity} jako miasto craftu` : `Set ${meta.bonusCity} as craft city`,
     fetchAllPrices: language === 'pl' ? 'Odśwież z lokalnej bazy cen' : 'Refresh from Local DB',
     tierEnc: language === 'pl' ? 'Stopień (Tier)' : 'Tier',
     inputCost: language === 'pl' ? 'Koszt netto' : 'Net Cost',
     outputRev: language === 'pl' ? 'Przychód netto' : 'Net Revenue',
-    netProfit: language === 'pl' ? 'Zysk netto' : 'Net Profit',
-    margin: language === 'pl' ? 'Marża' : 'Margin',
-    silverFocus: language === 'pl' ? 'Srebro/Focus' : 'Silver/Focus',
+    netProfit: language === 'pl' ? '🌿 Zysk netto' : '🌿 Net Profit',
+    margin: language === 'pl' ? '🌱 Marża' : '🌱 Margin',
+    silverFocus: language === 'pl' ? '✨ Srebro/Focus' : '✨ Silver/Focus',
     action: language === 'pl' ? 'Opcje' : 'Action',
-    planButton: language === 'pl' ? 'Planuj' : 'Plan',
+    planButton: language === 'pl' ? '🌿 Przejdź do Gaju' : '🌿 Open in Grove',
   };
 
   return (

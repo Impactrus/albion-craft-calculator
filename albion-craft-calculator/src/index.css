@@ -7,27 +7,89 @@
   color-scheme: dark;
 }
 
+body {
+  background-color: #050e09;
+  background-image: 
+    radial-gradient(ellipse at 15% 10%, rgba(16, 185, 129, 0.12) 0px, transparent 40%),
+    radial-gradient(ellipse at 85% 15%, rgba(245, 158, 11, 0.08) 0px, transparent 40%),
+    radial-gradient(ellipse at 50% 90%, rgba(5, 150, 105, 0.10) 0px, transparent 50%),
+    radial-gradient(circle at 50% 40%, rgba(6, 78, 59, 0.15) 0px, transparent 60%);
+  background-attachment: fixed;
+  color: #e2f4ea;
+}
+
 .font-albion {
   font-family: 'Cinzel', serif;
 }
 
-/* Custom scrollbars */
+.font-druid {
+  font-family: 'MedievalSharp', 'Cinzel', serif;
+}
+
+/* Druidic Forest Overrides for dark containers, cards, tables, inputs */
+.bg-\[\#141824\], .bg-\[\#12151e\], .bg-\[\#181b24\], .bg-\[\#161922\], .bg-\[\#171b26\] {
+  background-color: #0c2317 !important;
+  border-color: #1a4730 !important;
+}
+
+.bg-\[\#0f121a\], .bg-\[\#0f1117\], .bg-\[\#0e1017\], .bg-\[\#10131d\], .bg-\[\#0e1118\] {
+  background-color: #06160e !important;
+  border-color: #143b27 !important;
+}
+
+.bg-\[\#181c2b\], .bg-\[\#1a1f2e\], .bg-\[\#1f2434\], .bg-\[\#1c202d\] {
+  background-color: #0f2c1d !important;
+  border-color: #215c3e !important;
+}
+
+.border-\[\#262e42\], .border-\[\#262c3d\], .border-\[\#2b334a\], .border-\[\#2b3040\], .border-\[\#333d59\], .border-\[\#1f2535\] {
+  border-color: #1a4730 !important;
+}
+
+.hover\:bg-\[\#23283b\]:hover, .hover\:bg-\[\#1e2333\]:hover {
+  background-color: #143b27 !important;
+}
+
+.divide-\[\#252c3f\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #163d28 !important;
+}
+
+/* Druidic moss scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f1117;
+  background: #060e0a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #232733;
+  background: #143827;
   border-radius: 4px;
+  border: 1px solid #1f4f38;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #33394a;
+  background: #1e5239;
+}
+
+/* Forest glowing aura animations */
+@keyframes firefly {
+  0%, 100% { opacity: 0.3; transform: scale(1) translateY(0); }
+  50% { opacity: 0.8; transform: scale(1.08) translateY(-4px); }
+}
+
+.animate-firefly {
+  animation: firefly 4s ease-in-out infinite;
+}
+
+.druid-glow {
+  box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.25);
+}
+
+.druid-glow-gold {
+  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.25);
 }
 
 /* Albion tier colors */

@@ -304,7 +304,13 @@ export function App() {
   }, [handleUpdateSettings]);
 
   return (
-    <div className="min-h-screen bg-[#0b0d13] flex flex-col text-slate-200">
+    <div className="min-h-screen bg-[#050e09] text-emerald-100 flex flex-col font-sans relative overflow-x-hidden">
+      {/* Mystical forest atmospheric background glows */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[450px] bg-gradient-to-b from-emerald-600/15 via-teal-900/10 to-transparent blur-3xl opacity-80" />
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-700/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 -right-24 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl" />
+      </div>
       
       {/* Top Navbar */}
       <Navbar
@@ -322,7 +328,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
         
         {activeTab === 'planner' && (
           <CraftPlanner
@@ -381,14 +387,17 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-[#1f2535] bg-[#0e1118] py-4 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div>
-            Albion Online Crafting & Profit Calculator • Darmowy i niezależny kalkulator craftingu
+      <footer className="border-t border-[#163826] bg-[#07160e] py-5 text-center text-xs text-emerald-400/60 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-emerald-300/80 font-medium">
+            <span className="text-base">🌿</span>
+            <span className="font-albion tracking-wide">Leśne Centrum Dowodzenia Finansów Druida</span>
+            <span className="text-emerald-500/40 hidden sm:inline">•</span>
+            <span className="text-emerald-400/60 text-[11px] hidden sm:inline">Magiczne Zwoje Rzemiosła i Skarbiec Albionu</span>
           </div>
-          <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Baza cen: <span className="text-emerald-400 font-medium">Własna baza lokalna (Prywatny Sniffer Live)</span>
+          <div className="text-[11px] text-emerald-300/90 flex items-center gap-2 bg-[#0d2217] px-3 py-1.5 rounded-full border border-[#1b4731]">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Baza cen: <span className="text-emerald-300 font-semibold">Prywatna Kronika Puszczy (Sniffer Live)</span>
           </div>
         </div>
       </footer>
@@ -404,8 +413,8 @@ export function App() {
 
       {/* Floating Live Packet Toast */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 bg-[#121927] border-2 border-emerald-500/60 text-emerald-300 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md transition-all">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+        <div className="fixed bottom-5 right-5 z-50 bg-[#0a1e14]/95 border-2 border-emerald-400/80 text-emerald-200 px-4 py-3 rounded-2xl shadow-2xl shadow-emerald-950/80 flex items-center gap-3 backdrop-blur-md transition-all">
+          <span className="text-lg animate-bounce">🌿</span>
           <span className="text-xs font-bold font-mono tracking-wide">{toastMessage}</span>
         </div>
       )}

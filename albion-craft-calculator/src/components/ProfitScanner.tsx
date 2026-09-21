@@ -102,19 +102,19 @@ export const ProfitScanner: React.FC<ProfitScannerProps> = ({
   };
 
   const t = {
-    title: language === 'pl' ? 'Skaner Opłacalności Craftingu' : 'Crafting Profit Scanner',
+    title: language === 'pl' ? '🔮 Oko Druida (Skaner Zysku Puszczy)' : '🔮 Druid Eye (Forest Profit Scanner)',
     subtitle: language === 'pl' 
-      ? `Znajdź przedmioty generujące najwyższy zysk lub najlepszy przelicznik Silver/Focus w mieście ${settings.craftCity}` 
-      : `Discover the most profitable items or highest Silver/Focus craft in ${settings.craftCity}`,
+      ? `Przeszukaj puszczę w poszukiwaniu najobfitszych plonów i najwyższego współczynnika Srebra/Focusu w ${settings.craftCity}` 
+      : `Scan the grove for the most bountiful yields and highest Silver/Focus in ${settings.craftCity}`,
     scanPrices: language === 'pl' ? 'Odśwież ceny z lokalnej bazy' : 'Refresh from Local DB',
     sortBy: language === 'pl' ? 'Sortuj według' : 'Sort by',
-    profit: language === 'pl' ? 'Zysk netto (Srebro)' : 'Net Profit (Silver)',
-    margin: language === 'pl' ? 'Marża % (ROI)' : 'Margin % (ROI)',
-    silverFocus: language === 'pl' ? 'Srebro / Focus' : 'Silver / Focus',
+    profit: language === 'pl' ? '🌿 Zysk netto (Srebro)' : '🌿 Net Profit (Silver)',
+    margin: language === 'pl' ? '🌱 Marża % (ROI)' : '🌱 Margin % (ROI)',
+    silverFocus: language === 'pl' ? '✨ Srebro / Focus' : '✨ Silver / Focus',
     cost: language === 'pl' ? 'Koszt początkowy' : 'Investment Cost',
     item: language === 'pl' ? 'Przedmiot' : 'Item',
     sellPrice: language === 'pl' ? 'Cena sprzedaży' : 'Sell Price',
-    plan: language === 'pl' ? 'Otwórz' : 'Open',
+    plan: language === 'pl' ? '🌿 Otwórz w Gaju' : '🌿 Open in Grove',
   };
 
   return (
