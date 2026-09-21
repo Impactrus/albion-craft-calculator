@@ -5,8 +5,104 @@
  */
 
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = 5050;
+const DB_FILE = path.join(__dirname, 'prices_database.json');
+
+// Persistent Price Database in JSON file
+let priceDatabase = {
+  version: 1,
+  lastUpdated: new Date().toISOString(),
+  totalItems: 0,
+  prices: {}
+};
+
+function loadPriceDatabase() {
+  try {
+    if (fs.existsSync(DB_FILE)) {
+      const content = fs.readFileSync(DB_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      if (parsed && typeof parsed === 'object') {
+        priceDatabase = {
+          version: parsed.version || 1,
+          lastUpdated: parsed.lastUpdated || new Date().toISOString(),
+          totalItems: Object.keys(parsed.prices || {}).length,
+          prices: parsed.prices || {}
+        };
+        console.log(`[Bridge] 📁 Załadowano bazę cen z ${path.basename(DB_FILE)}: ${priceDatabase.totalItems} unikalnych przedmiotów.`);
+        return;
+      }
+    }
+  } catch (err) {
+    console.error('[Bridge] Błąd odczytu bazy cen z pliku:', err.message);
+  }
+  console.log(`[Bridge] 📁 Utworzono nową bazę cen (będzie zapisana w ${path.basename(DB_FILE)}).`);
+}
+
+let saveTimeout = null;
+function scheduleSaveDatabase() {
+  if (saveTimeout) clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    try {
+      priceDatabase.lastUpdated = new Date().toISOString();
+      priceDatabase.totalItems = Object.keys(priceDatabase.prices).length;
+      fs.writeFileSync(DB_FILE, JSON.stringify(priceDatabase, null, 2), 'utf-8');
+      console.log(`[Bridge] 💾 Zaktualizowano plik ${path.basename(DB_FILE)} (${priceDatabase.totalItems} przedmiotów, ${new Date().toLocaleTimeString()}).`);
+    } catch (err) {
+      console.error('[Bridge] Błąd zapisu bazy cen do pliku:', err.message);
+    }
+  }, 1000);
+}
+
+function updatePriceInDatabase(itemId, city, quality, price, auctionType, timestamp, source = 'sniffer') {
+  if (!itemId || !city || !price || price <= 0) return;
+  if (!priceDatabase.prices[itemId]) {
+    priceDatabase.prices[itemId] = [];
+  }
+  const list = priceDatabase.prices[itemId];
+  let record = list.find(r => r.city.toLowerCase() === city.toLowerCase() && r.quality === quality);
+
+  if (!record) {
+    record = {
+      item_id: itemId,
+      city: city,
+      quality: quality,
+      sell_price_min: auctionType === 'offer' ? price : 0,
+      sell_price_min_date: auctionType === 'offer' ? timestamp : '',
+      sell_price_max: auctionType === 'offer' ? price : 0,
+      sell_price_max_date: auctionType === 'offer' ? timestamp : '',
+      buy_price_min: auctionType === 'request' ? price : 0,
+      buy_price_min_date: auctionType === 'request' ? timestamp : '',
+      buy_price_max: auctionType === 'request' ? price : 0,
+      buy_price_max_date: auctionType === 'request' ? timestamp : '',
+      source: source,
+      updated_at: timestamp
+    };
+    list.push(record);
+  } else {
+    if (auctionType === 'offer') {
+      if (record.sell_price_min === 0 || price < record.sell_price_min) {
+        record.sell_price_min = price;
+      }
+      record.sell_price_max = Math.max(record.sell_price_max || 0, price);
+      record.sell_price_min_date = timestamp;
+      record.sell_price_max_date = timestamp;
+    } else if (auctionType === 'request') {
+      if (record.buy_price_max === 0 || price > record.buy_price_max) {
+        record.buy_price_max = price;
+      }
+      record.buy_price_min = record.buy_price_min === 0 ? price : Math.min(record.buy_price_min, price);
+      record.buy_price_max_date = timestamp;
+    }
+    record.source = source;
+    record.updated_at = timestamp;
+  }
+}
+
+// Load database from file at startup
+loadPriceDatabase();
 
 // Mapping of Albion location IDs to Royal Cities & Outposts
 // Based on albiondata-client LocationId values observed in live P18 traffic
@@ -100,8 +196,65 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({
       status: 'running',
       clients: sseClients.size,
-      cachedOrders: recentOrders.length
+      cachedOrders: recentOrders.length,
+      savedItemsCount: priceDatabase.totalItems,
+      lastSaved: priceDatabase.lastUpdated,
+      dbFile: path.basename(DB_FILE)
     }));
+    return;
+  }
+
+  // Get saved prices database endpoint
+  if (req.method === 'GET' && req.url === '/api/saved-prices') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(priceDatabase));
+    return;
+  }
+
+  // Save/merge prices into database endpoint (from frontend)
+  if (req.method === 'POST' && req.url === '/api/save-prices') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body);
+        const timestamp = new Date().toISOString();
+        if (payload.records && Array.isArray(payload.records)) {
+          for (const rec of payload.records) {
+            if (rec.sell_price_min > 0) {
+              updatePriceInDatabase(rec.item_id, rec.city, rec.quality || 1, rec.sell_price_min, 'offer', rec.sell_price_min_date || timestamp, 'aodp');
+            }
+            if (rec.buy_price_max > 0) {
+              updatePriceInDatabase(rec.item_id, rec.city, rec.quality || 1, rec.buy_price_max, 'request', rec.buy_price_max_date || timestamp, 'aodp');
+            }
+            if (rec.item_id.includes('@')) {
+              const baseId = rec.item_id.split('@')[0];
+              if (rec.sell_price_min > 0) {
+                updatePriceInDatabase(baseId, rec.city, rec.quality || 1, rec.sell_price_min, 'offer', rec.sell_price_min_date || timestamp, 'aodp');
+              }
+              if (rec.buy_price_max > 0) {
+                updatePriceInDatabase(baseId, rec.city, rec.quality || 1, rec.buy_price_max, 'request', rec.buy_price_max_date || timestamp, 'aodp');
+              }
+            }
+          }
+          scheduleSaveDatabase();
+        }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ saved: true, totalItems: Object.keys(priceDatabase.prices).length }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message }));
+      }
+    });
+    return;
+  }
+
+  // Export prices file download endpoint
+  if (req.method === 'GET' && req.url === '/api/export-prices') {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="prices_database.json"');
+    res.writeHead(200);
+    res.end(JSON.stringify(priceDatabase, null, 2));
     return;
   }
 
@@ -241,9 +394,17 @@ function handleIncomingMarketData(data, urlPath) {
     if (recentOrders.length > 100) {
       recentOrders.shift();
     }
+
+    // Persist to JSON database file
+    updatePriceInDatabase(rawId, cityName, quality, realPrice, auctionType, updatePayload.timestamp, 'sniffer');
+    if (rawId.includes('@')) {
+      const baseId = rawId.split('@')[0];
+      updatePriceInDatabase(baseId, cityName, quality, realPrice, auctionType, updatePayload.timestamp, 'sniffer');
+    }
   }
 
   if (processedUpdates.length > 0) {
+    scheduleSaveDatabase();
     console.log(`[Bridge] 🎯 Przechwycono ${processedUpdates.length} ofert z rynku gry:`);
     for (const p of processedUpdates.slice(0, 3)) {
       console.log(`   ➔ [${p.city}] ${p.item_id} (Jakość ${p.quality}): ${p.price.toLocaleString()} srebra (${p.auction_type})`);

@@ -163,3 +163,9 @@ export interface CalculationResult {
   journalNetProfit: number;
   journalDetail?: JournalCalculationDetail | null;
 }
+
+export interface PriceDatabaseMetadata {
+  totalItems: number;
+  lastSaved: string;
+  dbFile: string;
+}
