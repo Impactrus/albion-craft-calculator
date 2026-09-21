@@ -111,7 +111,7 @@ export const RefiningCalculator: React.FC<RefiningCalculatorProps> = ({
       ? `Optymalne miasto z bonusem: ${meta.bonusCity} (RRR: 36.7% / 53.9% z focusem)`
       : `Optimal bonus city: ${meta.bonusCity} (RRR: 36.7% / 53.9% with focus)`,
     switchToBonusCity: language === 'pl' ? `Ustaw ${meta.bonusCity} jako miasto craftu` : `Set ${meta.bonusCity} as craft city`,
-    fetchAllPrices: language === 'pl' ? 'Pobierz ceny wszystkich surowców' : 'Fetch All Resource Prices',
+    fetchAllPrices: language === 'pl' ? 'Odśwież z lokalnej bazy cen' : 'Refresh from Local DB',
     tierEnc: language === 'pl' ? 'Stopień (Tier)' : 'Tier',
     inputCost: language === 'pl' ? 'Koszt netto' : 'Net Cost',
     outputRev: language === 'pl' ? 'Przychód netto' : 'Net Revenue',

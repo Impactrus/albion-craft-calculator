@@ -301,7 +301,7 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
     returnRate: language === 'pl' ? 'Zwrot Surowców (RRR)' : 'Return Rate (RRR)',
     cargoWeight: language === 'pl' ? 'Waga Transportu' : 'Cargo Weight',
     breakdownTitle: language === 'pl' ? 'Zestawienie Materiałów i Kosztów' : 'Materials & Cost Breakdown',
-    refreshPrices: language === 'pl' ? 'Pobierz aktualne ceny z API' : 'Refresh Live Prices',
+    refreshPrices: language === 'pl' ? 'Odśwież z lokalnej bazy' : 'Refresh from Local DB',
     material: language === 'pl' ? 'Materiał / Surowiec' : 'Material / Resource',
     needed: language === 'pl' ? 'Wymagane' : 'Needed',
     returned: language === 'pl' ? 'Zwrot (RRR)' : 'Returned',
@@ -330,7 +330,7 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
     netRevenue: language === 'pl' ? 'Przychód netto' : 'Net Revenue',
     totalCostsSum: language === 'pl' ? 'Suma kosztów netto' : 'Total Net Costs',
     customPriceNotice: language === 'pl' ? 'Ręcznie wpisana cena' : 'Custom price override',
-    resetPrice: language === 'pl' ? 'Przywróć cenę z API' : 'Reset to API price',
+    resetPrice: language === 'pl' ? 'Przywróć cenę z bazy' : 'Reset to DB price',
   };
 
   return (

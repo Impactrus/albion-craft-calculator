@@ -251,84 +251,35 @@ export function App() {
     setSettings((prev) => ({ ...prev, ...newSettings }));
   }, []);
 
-  // Price refresh function
+  // Refresh prices from our private local bridge database
   const handleRefreshPrices = useCallback(
-    async (itemIds: string[]) => {
-      if (itemIds.length === 0) return;
+    async (_itemIds?: string[]) => {
       setIsLoadingPrices(true);
       try {
-        const fetched = await fetchPrices(settings.server, itemIds, undefined, undefined, true);
-        setPriceMap((prev) => {
-          const next = new Map(prev);
-          const allRecords: PriceRecord[] = [];
-          fetched.forEach((records, id) => {
-            next.set(id, records);
-            if (records.length > 0) allRecords.push(...records);
-          });
-          if (allRecords.length > 0) {
-            syncPricesToBridge(allRecords);
+        const res = await fetch('http://localhost:5050/api/saved-prices');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.prices) {
+            setPriceMap((prev) => {
+              const next = new Map(prev);
+              Object.entries(data.prices).forEach(([id, recs]) => {
+                next.set(id, recs as PriceRecord[]);
+              });
+              return next;
+            });
+            try {
+              localStorage.setItem('albion_saved_prices', JSON.stringify(data.prices));
+            } catch {}
           }
-          return next;
-        });
+        }
       } catch (err) {
-        console.error('Error in handleRefreshPrices:', err);
+        console.error('Error refreshing prices from local database:', err);
       } finally {
         setIsLoadingPrices(false);
       }
     },
-    [settings.server, syncPricesToBridge]
+    []
   );
-
-  // Pre-load common prices and crafting journals on startup
-  useEffect(() => {
-    const commonIds = [
-      'T4_MAIN_SWORD',
-      'T4_MAIN_SWORD@1',
-      'T4_METALBAR',
-      'T4_LEATHER',
-      'T4_PLANKS',
-      'T4_WOOD',
-      'T3_PLANKS',
-      'T4_BAG',
-      'T4_ARMOR_PLATE_SET1',
-      'T5_MAIN_SWORD',
-      'T6_MAIN_SWORD',
-      // Laborer Crafting Journals (Empty & Full)
-      'T4_JOURNAL_WARRIOR_EMPTY',
-      'T4_JOURNAL_WARRIOR_FULL',
-      'T5_JOURNAL_WARRIOR_EMPTY',
-      'T5_JOURNAL_WARRIOR_FULL',
-      'T6_JOURNAL_WARRIOR_EMPTY',
-      'T6_JOURNAL_WARRIOR_FULL',
-      'T4_JOURNAL_HUNTER_EMPTY',
-      'T4_JOURNAL_HUNTER_FULL',
-      'T5_JOURNAL_HUNTER_EMPTY',
-      'T5_JOURNAL_HUNTER_FULL',
-      'T6_JOURNAL_HUNTER_EMPTY',
-      'T6_JOURNAL_HUNTER_FULL',
-      'T4_JOURNAL_MAGE_EMPTY',
-      'T4_JOURNAL_MAGE_FULL',
-      'T5_JOURNAL_MAGE_EMPTY',
-      'T5_JOURNAL_MAGE_FULL',
-      'T6_JOURNAL_MAGE_EMPTY',
-      'T6_JOURNAL_MAGE_FULL',
-      'T4_JOURNAL_TOOLMAKER_EMPTY',
-      'T4_JOURNAL_TOOLMAKER_FULL',
-      'T5_JOURNAL_TOOLMAKER_EMPTY',
-      'T5_JOURNAL_TOOLMAKER_FULL',
-      'T6_JOURNAL_TOOLMAKER_EMPTY',
-      'T6_JOURNAL_TOOLMAKER_FULL'
-    ];
-    fetchPrices(settings.server, commonIds).then((fetched) => {
-      setPriceMap((prev) => {
-        const next = new Map(prev);
-        fetched.forEach((records, id) => {
-          next.set(id, records);
-        });
-        return next;
-      });
-    });
-  }, [settings.server]);
 
   // Send simulated test packet to bridge
   const handleSendTestPacket = useCallback(async () => {
@@ -435,8 +386,9 @@ export function App() {
           <div>
             Albion Online Crafting & Profit Calculator • Darmowy i niezależny kalkulator craftingu
           </div>
-          <div className="text-[11px] text-slate-600">
-            Dane rynkowe: <a href="https://www.albion-online-data.com/" target="_blank" rel="noreferrer" className="text-amber-500 hover:underline">The Albion Online Data Project</a>
+          <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Baza cen: <span className="text-emerald-400 font-medium">Własna baza lokalna (Prywatny Sniffer Live)</span>
           </div>
         </div>
       </footer>

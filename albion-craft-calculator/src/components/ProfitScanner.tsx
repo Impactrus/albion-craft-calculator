@@ -106,7 +106,7 @@ export const ProfitScanner: React.FC<ProfitScannerProps> = ({
     subtitle: language === 'pl' 
       ? `Znajdź przedmioty generujące najwyższy zysk lub najlepszy przelicznik Silver/Focus w mieście ${settings.craftCity}` 
       : `Discover the most profitable items or highest Silver/Focus craft in ${settings.craftCity}`,
-    scanPrices: language === 'pl' ? 'Pobierz aktualne ceny dla listy' : 'Scan Live Market Prices',
+    scanPrices: language === 'pl' ? 'Odśwież ceny z lokalnej bazy' : 'Refresh from Local DB',
     sortBy: language === 'pl' ? 'Sortuj według' : 'Sort by',
     profit: language === 'pl' ? 'Zysk netto (Srebro)' : 'Net Profit (Silver)',
     margin: language === 'pl' ? 'Marża % (ROI)' : 'Margin % (ROI)',
