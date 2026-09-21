@@ -17,6 +17,20 @@ if errorlevel 1 (
     exit /b 1
 )
 
+:: Sprawdz czy pobrano zaleznosci (pierwsze uruchomienie)
+if not exist "%~dp0albion-craft-calculator\node_modules" (
+    echo.
+    echo  [Pierwsze uruchomienie] Trwa instalowanie bibliotek aplikacji...
+    echo  To potrwa okolo 30-60 sekund. Prosimy o cierpliwosc.
+    echo.
+    cd /d "%~dp0albion-craft-calculator"
+    call npm install
+    cd /d "%~dp0"
+    echo.
+    echo  [OK] Biblioteki zainstalowane pomyslnie!
+    echo.
+)
+
 echo  [1/3] Uruchamiam Bridge (mostek pakietow)...
 start "Albion Bridge" cmd /k "cd /d ""%~dp0albion-craft-calculator"" && node bridge.cjs"
 timeout /t 2 /nobreak >nul
