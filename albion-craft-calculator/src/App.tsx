@@ -6,8 +6,7 @@ import {
   PriceRecord,
   AlbionDataStructure,
   CapturedMarketOrder,
-  City,
-  PriceDatabaseMetadata
+  City
 } from './types/albion';
 import craftingDataRaw from './data/albion_crafting_data.json';
 import { fetchPrices } from './services/albionApi';
@@ -68,31 +67,17 @@ export function App() {
   // In-memory price map
   const [priceMap, setPriceMap] = useState<Map<string, PriceRecord[]>>(new Map());
 
-  // Database metadata for prices_database.json
-  const [dbMetadata, setDbMetadata] = useState<PriceDatabaseMetadata | null>(null);
-
-  // Sync newly fetched or updated prices to bridge prices_database.json
+  // Silently sync newly fetched or updated prices to bridge prices_database.json in background
   const syncPricesToBridge = useCallback((records: PriceRecord[]) => {
     if (records.length === 0) return;
     fetch('http://localhost:5050/api/save-prices', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records })
-    })
-      .then((res) => res.json())
-      .then((d) => {
-        if (d && d.totalItems) {
-          setDbMetadata({
-            totalItems: d.totalItems,
-            lastSaved: new Date().toISOString(),
-            dbFile: 'prices_database.json'
-          });
-        }
-      })
-      .catch(() => { /* bridge offline */ });
+    }).catch(() => { /* bridge offline, ignore */ });
   }, []);
 
-  // Load persistent prices from bridge prices_database.json on startup
+  // Silently load persistent prices from bridge prices_database.json on startup
   useEffect(() => {
     fetch('http://localhost:5050/api/saved-prices')
       .then((res) => {
@@ -107,12 +92,6 @@ export function App() {
               next.set(id, recs as PriceRecord[]);
             });
             return next;
-          });
-          const count = data.totalItems || Object.keys(data.prices).length;
-          setDbMetadata({
-            totalItems: count,
-            lastSaved: data.lastUpdated || '',
-            dbFile: 'prices_database.json'
           });
           // Cache in localStorage as offline backup
           try {
@@ -228,12 +207,6 @@ export function App() {
             const first = updates[0];
             const countStr = updates.length > 1 ? ` (+${updates.length - 1} innych)` : '';
             setToastMessage(`🎯 [${first.city}] Przechwycono ${first.item_id}: ${first.price.toLocaleString()} srebra${countStr}`);
-            
-            setDbMetadata((prev) => ({
-              totalItems: prev ? prev.totalItems + updates.length : updates.length,
-              lastSaved: new Date().toISOString(),
-              dbFile: 'prices_database.json'
-            }));
           } catch (e) {
             console.error('Error handling market_update event:', e);
           }
@@ -451,7 +424,6 @@ export function App() {
             onClearOrders={handleClearOrders}
             snifferStatus={snifferStatus}
             onSendTestPacket={handleSendTestPacket}
-            dbMetadata={dbMetadata}
           />
         )}
 

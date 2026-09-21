@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { CapturedMarketOrder, AlbionItem, Language, PriceDatabaseMetadata } from "../types/albion";
+import { CapturedMarketOrder, AlbionItem, Language } from "../types/albion";
 import { getItemRenderUrl } from "../services/albionApi";
-import { Radio, Search, Trash2, Building, Send, Zap, Database, Download } from "lucide-react";
+import { Radio, Search, Trash2, Building, Send, Zap } from "lucide-react";
 
 interface CapturedPricesTabProps {
   orders: CapturedMarketOrder[];
@@ -10,7 +10,6 @@ interface CapturedPricesTabProps {
   onClearOrders: () => void;
   snifferStatus: "connected" | "disconnected";
   onSendTestPacket: () => Promise<void>;
-  dbMetadata?: PriceDatabaseMetadata | null;
 }
 
 const QUALITY_LABELS: Record<number, { pl: string; en: string; badgeColor: string }> = {
@@ -22,7 +21,7 @@ const QUALITY_LABELS: Record<number, { pl: string; en: string; badgeColor: strin
 };
 
 export const CapturedPricesTab: React.FC<CapturedPricesTabProps> = ({
-  orders, items, language, onClearOrders, snifferStatus, onSendTestPacket, dbMetadata,
+  orders, items, language, onClearOrders, snifferStatus, onSendTestPacket,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState("all");
@@ -130,52 +129,6 @@ export const CapturedPricesTab: React.FC<CapturedPricesTabProps> = ({
         <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2">
           <Zap className="w-4 h-4 text-amber-400 shrink-0" />
           <p className="text-xs text-amber-300 font-semibold">{t.autoSyncInfo}</p>
-        </div>
-
-        {/* Database File Persistence Info */}
-        <div className="bg-[#0e111a] border border-[#262e42] rounded-lg p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-purple-950/60 border border-purple-500/40 text-purple-300">
-              <Database className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="font-semibold text-slate-200 flex items-center gap-2">
-                <span>{pl ? "Plik bazy cen:" : "Price Database File:"}</span>
-                <code className="px-1.5 py-0.5 bg-[#171c2a] border border-[#303952] rounded text-amber-300 font-mono text-[11px]">
-                  {dbMetadata?.dbFile || "prices_database.json"}
-                </code>
-                {dbMetadata && (
-                  <span className="text-[10px] text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30">
-                    {dbMetadata.totalItems} {pl ? "zapisanych przedmiotów" : "items stored"}
-                  </span>
-                )}
-              </div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
-                {pl
-                  ? "Ceny są automatycznie zapisywane na dysku przy każdym wykryciu pakietu ze sniffera oraz odpytaniu rynku."
-                  : "Prices are automatically persisted to disk whenever new market packets or API data arrive."}
-                {dbMetadata?.lastSaved && (
-                  <span className="text-slate-500 ml-1">
-                    ({pl ? "Zaktualizowano:" : "Updated:"} {new Date(dbMetadata.lastSaved).toLocaleTimeString()})
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <a
-              href="http://localhost:5050/api/export-prices"
-              download="prices_database.json"
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-1.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition text-xs font-semibold flex items-center gap-1.5"
-              title={pl ? "Pobierz aktualny plik JSON z cenami" : "Download prices database JSON"}
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>{pl ? "Pobierz plik bazy (.json)" : "Export JSON"}</span>
-            </a>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-3 border-t border-[#23283b]">
