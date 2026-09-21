@@ -10,6 +10,7 @@ import {
 } from '../types/albion';
 import { calculateCrafting, hasCityBonus } from '../services/calculator';
 import { getItemRenderUrl, getItemApiId } from '../services/albionApi';
+import { CraftHistoryTable, CheckedCraftEntry } from './CraftHistoryTable';
 import {
   Search,
   Sparkles,
@@ -277,6 +278,106 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
       delete copy[id];
       return copy;
     });
+  };
+
+  // Persistent Checked Crafts History Ledger
+  const [history, setHistory] = useState<CheckedCraftEntry[]>(() => {
+    try {
+      const saved = localStorage.getItem('albion_craft_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Auto-record current craft calculation into history
+  useEffect(() => {
+    if (!calcResult || !selectedItem) return;
+    if (calcResult.totalCost <= 0 && calcResult.unitSellPrice <= 0) return;
+
+    const timer = setTimeout(() => {
+      const profitPerItem = calcResult.quantity > 0 ? Math.round(calcResult.netProfit / calcResult.quantity) : 0;
+      const costPerItem = calcResult.quantity > 0 ? Math.round(calcResult.totalCost / calcResult.quantity) : 0;
+      const isProfitable = calcResult.netProfit > 0;
+      const entryId = `${selectedItem.id}@${enchantment}_q${quality}_${settings.craftCity}_${settings.sellCity}_${settings.useFocus ? 'focus' : 'nofocus'}`;
+
+      const newEntry: CheckedCraftEntry = {
+        id: entryId,
+        itemId: selectedItem.id,
+        name: selectedItem.name,
+        namePl: selectedItem.name_pl,
+        tier: selectedItem.tier,
+        enchantment: enchantment,
+        quality: quality,
+        craftCity: settings.craftCity,
+        sellCity: settings.sellCity,
+        useFocus: settings.useFocus,
+        quantity: quantity,
+        costPerItem: costPerItem,
+        sellPricePerItem: Math.round(calcResult.unitSellPrice),
+        profitPerItem: profitPerItem,
+        profitMarginPercent: calcResult.profitMarginPercent,
+        totalProfit: Math.round(calcResult.netProfit),
+        isProfitable: isProfitable,
+        journalsIncluded: settings.includeJournals,
+        journalProfit: calcResult.journalDetail ? Math.round(calcResult.journalDetail.journalNetProfit) : 0,
+        timestamp: new Date().toISOString()
+      };
+
+      setHistory((prev) => {
+        if (prev.length > 0 && prev[0].id === entryId && prev[0].profitPerItem === profitPerItem && prev[0].quantity === quantity) {
+          return prev;
+        }
+        const filtered = prev.filter(e => e.id !== entryId);
+        const next = [newEntry, ...filtered].slice(0, 100);
+        try {
+          localStorage.setItem('albion_craft_history', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [
+    calcResult,
+    selectedItem,
+    enchantment,
+    quality,
+    settings.craftCity,
+    settings.sellCity,
+    settings.useFocus,
+    settings.includeJournals,
+    quantity
+  ]);
+
+  const handleClearHistory = () => {
+    setHistory([]);
+    try {
+      localStorage.removeItem('albion_craft_history');
+    } catch {}
+  };
+
+  const handleRemoveHistoryEntry = (id: string) => {
+    setHistory((prev) => {
+      const next = prev.filter(e => e.id !== id);
+      try {
+        localStorage.setItem('albion_craft_history', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleLoadHistoryEntry = (entry: CheckedCraftEntry) => {
+    setSelectedItemId(entry.itemId);
+    setEnchantment(entry.enchantment);
+    setQuality(entry.quality);
+    setQuantity(entry.quantity);
+    onUpdateSettings({
+      craftCity: entry.craftCity,
+      sellCity: entry.sellCity,
+      useFocus: entry.useFocus
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const t = {
@@ -1252,6 +1353,15 @@ export const CraftPlanner: React.FC<CraftPlannerProps> = ({
 
         </div>
       )}
+
+      {/* Persistent History Ledger Table */}
+      <CraftHistoryTable
+        history={history}
+        language={language}
+        onClearHistory={handleClearHistory}
+        onRemoveEntry={handleRemoveHistoryEntry}
+        onLoadEntry={handleLoadHistoryEntry}
+      />
 
     </div>
   );
