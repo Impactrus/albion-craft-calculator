@@ -42,73 +42,73 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="bg-[#091b12] border-b border-[#1b442f] sticky top-0 z-30 shadow-xl shadow-black/40 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <header className="bg-[#091b12]/95 border-b border-[#1b442f] sticky top-0 z-30 shadow-xl shadow-black/50 backdrop-blur-md">
+      <div className="max-w-[1550px] mx-auto px-3 sm:px-5 lg:px-8">
+        <div className="flex items-center justify-between min-h-[4rem] py-2 gap-2 lg:gap-4">
           
           {/* Druidic Brand Logo */}
-          <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => setActiveTab('planner')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 via-emerald-800 to-teal-950 flex items-center justify-center shadow-lg shadow-emerald-950/60 border border-emerald-400/50 group-hover:border-emerald-300 transition-all">
-              <Trees className="w-6 h-6 text-emerald-200 drop-shadow group-hover:scale-110 transition-transform" />
+          <div className="flex items-center space-x-2.5 cursor-pointer group flex-shrink-0" onClick={() => setActiveTab('planner')}>
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-600 via-emerald-800 to-teal-950 flex items-center justify-center shadow-lg shadow-emerald-950/60 border border-emerald-400/50 group-hover:border-emerald-300 transition-all flex-shrink-0">
+              <Trees className="w-5 h-5 text-emerald-200 drop-shadow group-hover:scale-110 transition-transform" />
             </div>
-            <div>
-              <div className="text-base sm:text-lg font-bold font-albion tracking-wide text-emerald-300 drop-shadow flex items-center gap-2 group-hover:text-emerald-200 transition-colors">
+            <div className="flex flex-col justify-center">
+              <div className="text-xs sm:text-sm lg:text-base font-bold font-albion tracking-wide text-emerald-300 drop-shadow flex items-center gap-1.5 group-hover:text-emerald-200 transition-colors whitespace-nowrap">
                 <span>{t.title}</span>
-                <span className="text-[10px] font-sans font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hidden xl:inline-block">
-                  DRUID v2
+                <span className="text-[9px] font-sans font-semibold uppercase px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hidden 2xl:inline-block">
+                  DRUID
                 </span>
               </div>
-              <div className="text-[11px] text-emerald-400/70 font-medium">{t.subtitle}</div>
+              <div className="text-[10px] text-emerald-400/70 font-medium hidden 2xl:block leading-tight">{t.subtitle}</div>
             </div>
           </div>
 
           {/* Nav Tabs */}
-          <nav className="hidden md:flex space-x-1.5">
+          <nav className="hidden md:flex items-center space-x-1 lg:space-x-1.5 flex-shrink-0">
             <button
               onClick={() => setActiveTab('planner')}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
+              className={`px-2.5 lg:px-3.5 py-1.5 rounded-xl text-xs lg:text-sm font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'planner'
                   ? 'bg-emerald-700/30 text-emerald-300 border border-emerald-500/60 shadow-lg shadow-emerald-950/50 font-bold'
                   : 'text-emerald-200/70 hover:text-emerald-100 hover:bg-emerald-900/30'
               }`}
             >
-              <Leaf className="w-4 h-4 text-emerald-400" />
-              {t.planner}
+              <Leaf className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-emerald-400" />
+              <span>{t.planner}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('refining')}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
+              className={`px-2.5 lg:px-3.5 py-1.5 rounded-xl text-xs lg:text-sm font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'refining'
                   ? 'bg-emerald-700/30 text-emerald-300 border border-emerald-500/60 shadow-lg shadow-emerald-950/50 font-bold'
                   : 'text-emerald-200/70 hover:text-emerald-100 hover:bg-emerald-900/30'
               }`}
             >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              {t.refining}
+              <Sparkles className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-amber-400" />
+              <span>{t.refining}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('scanner')}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
+              className={`px-2.5 lg:px-3.5 py-1.5 rounded-xl text-xs lg:text-sm font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'scanner'
                   ? 'bg-emerald-700/30 text-emerald-300 border border-emerald-500/60 shadow-lg shadow-emerald-950/50 font-bold'
                   : 'text-emerald-200/70 hover:text-emerald-100 hover:bg-emerald-900/30'
               }`}
             >
-              <Compass className="w-4 h-4 text-teal-400" />
-              {t.scanner}
+              <Compass className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-teal-400" />
+              <span>{t.scanner}</span>
             </button>
 
             <button
               onClick={() => setActiveTab('captured')}
-              className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 ${
+              className={`px-2.5 lg:px-3.5 py-1.5 rounded-xl text-xs lg:text-sm font-medium transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'captured'
                   ? 'bg-emerald-700/30 text-emerald-300 border border-emerald-500/60 shadow-lg shadow-emerald-950/50 font-bold'
                   : 'text-emerald-200/70 hover:text-emerald-100 hover:bg-emerald-900/30'
               }`}
             >
-              <Radio className={`w-4 h-4 ${snifferStatus === 'connected' ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              <Radio className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${snifferStatus === 'connected' ? 'text-emerald-400' : 'text-emerald-600'}`} />
               <span>{t.captured}</span>
               {capturedCount > 0 && (
                 <span className="text-[10px] font-bold font-mono px-1.5 py-0.2 rounded-full bg-emerald-500/25 text-emerald-300 border border-emerald-500/40">
@@ -119,11 +119,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Right side controls: Sniffer, Server, Premium, Language, Settings */}
-          <div className="flex items-center space-x-2 sm:space-x-2.5">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0">
             
             {/* Live Packet Sniffer Indicator */}
             <div
-              className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all ${
+              className={`px-2 py-1 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all whitespace-nowrap ${
                 snifferStatus === 'connected'
                   ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/50 shadow-sm shadow-emerald-950'
                   : 'bg-[#0e2419] text-emerald-500/60 border-[#1a402d]'
@@ -139,8 +139,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                   snifferStatus === 'connected' ? 'bg-emerald-400 animate-ping' : 'bg-emerald-800'
                 }`}
               />
-              <span className="hidden sm:inline">
+              <span className="hidden xl:inline">
                 {snifferStatus === 'connected' ? '🌲 Sniffer LIVE' : '🍂 Sniffer OFF'}
+              </span>
+              <span className="xl:hidden inline text-[11px]">
+                {snifferStatus === 'connected' ? 'LIVE' : 'OFF'}
               </span>
             </div>
             {/* Server Region Selector */}

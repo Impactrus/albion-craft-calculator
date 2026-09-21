@@ -328,7 +328,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
+      <main className="flex-1 max-w-[1550px] w-full mx-auto px-3 sm:px-5 lg:px-8 pt-6 pb-12 relative z-10">
         
         {activeTab === 'planner' && (
           <CraftPlanner
@@ -388,7 +388,7 @@ export function App() {
 
       {/* Footer */}
       <footer className="border-t border-[#163826] bg-[#07160e] py-5 text-center text-xs text-emerald-400/60 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="max-w-[1550px] mx-auto px-3 sm:px-5 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-emerald-300/80 font-medium">
             <span className="text-base">🌿</span>
             <span className="font-albion tracking-wide">Leśne Centrum Dowodzenia Finansów Druida</span>
